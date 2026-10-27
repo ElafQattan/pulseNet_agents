@@ -1,89 +1,234 @@
-# Agentic AI Systems Engineering · هندسة أنظمة الذكاء الاصطناعي التوكيلي
+# PulseNet (نبض) · an AI agent for smart-city IoT troubleshooting
 
-**SDAIA Academy · AI Engineering Track**: a 4-day hands-on bootcamp (4 sessions per day) plus a capstone presentation day. Build agents that work, and the systems around them: the three LLM API shapes and the agent loop, context engineering, harnesses, loops and graphs, then evaluation, security and production. Every lab runs on **free** open models through OpenRouter (and Hugging Face).
+> A technician in a city's control center describes a fault in plain words. PulseNet checks the devices and their
+> logs, looks up the right runbook, and proposes a fix. Nothing changes on the network until the technician says yes.
 
-**Audience:** programmers comfortable with Python who have used ChatGPT but have not worked with LLMs from code. Day 1 starts from what a language model is and how it differs from ChatGPT; every later idea is introduced before it is used (see [nuggets.md](nuggets.md) for the dependency map the decks follow).
+**Course:** SDAIA Academy · Agentic AI Systems Engineering · Capstone
+**Track:** 2 · Your harness (a domain agent for a real workflow)
+**Author:** Elaf Qattan
+**Built on:** the course repository [SDAIAAcademy/agentic-ai](https://github.com/SDAIAAcademy/agentic-ai) (forked)
 
-**Course page:** https://sdaiaacademy.github.io/agentic-ai/
+| Part | Status |
+|---|---|
+| 1 · Setup (repo, `uv`, API key, first run) | ✅ done |
+| 2 · Synthetic city data and runbooks (RAG source) | ✅ done |
+| 3 · Tools and the MCP server | ⏳ next |
+| 4 · `AGENTS.md`, permissions, approvals, budgets | ⏳ |
+| 5 · Eval suite (15+ tasks) on configurations A and B | ⏳ |
+| 6 · Attack and defence | ⏳ |
+| 7 · Slides and demo | ⏳ |
 
-| Day | Theme | Slides |
+---
+
+## 1. The problem
+
+Smart cities run thousands of small connected devices: streetlight controllers, parking sensors, water meters,
+cameras. They fail in ordinary ways. A gateway runs out of memory and a whole district goes dark on the dashboard.
+A sensor's battery runs down. A power cut resets a clock and a streetlight stays on all morning.
+
+The technician on shift has to jump between the device list, the logs and a folder of runbooks to work out what
+happened. Most of that work is reading and matching, and that part can be handed to an agent. **Changing**
+something on a live city network is a different matter, so the agent may propose changes but a person has to
+approve each one.
+
+## 2. Why the scenario is realistic
+
+Each fault in the dataset is a known, documented failure in IoT networks:
+
+| Fault | Where it comes from |
+|---|---|
+| Reconnection storm after a power cut | **GSMA TS.34** (official guideline). Annex A.1 describes 375,000 devices that kept rebooting their modems and took a mobile core network down for about 48 hours. |
+| Camera taken over through its default password | One of the most common real IoT attacks (default credentials). |
+| Gateway packet forwarder killed by low memory | A frequent LoRaWAN gateway failure. |
+| Clock reset after a power loss | Common in controllers that keep time locally instead of using NTP. |
+| Weak NB-IoT signal in an underground meter chamber | A classic coverage problem for water meters. |
+
+The GSMA text was taken from the public dataset [GSMA/gsma on Hugging Face](https://huggingface.co/datasets/GSMA/gsma)
+(TS.34 v12.0). I quote it word for word in [the runbooks](labs/pulsenet/data/runbooks/09_gsma_ts34.md) and checked
+every quote against the original.
+
+## 3. The simulated city
+
+There is no real hardware. The whole network is described in data files, and the agent's tools read and change
+those files through a small database. All of it is synthetic: no real city, device or person.
+
+![The simulated smart-city IoT network](docs/images/city_network.svg)
+
+What happened that night, according to the logs:
+
+| Time | Event (from [logs.txt](labs/pulsenet/data/logs.txt)) |
+|---|---|
+| 03:14 | 🔴 Someone logs in to camera CAM-RWD-02 from 203.0.113.66 with the default password and replaces its description with instructions aimed at an AI |
+| 04:10 | 🟠 Vendor advisory PN-SA-2026-014 matches traffic controller TL-NKH-01 |
+| 04:58 | ⚡ Power cut in Al-Waha |
+| 05:31 | Power is back. 🟠 SL-WAH-03 restarts with the wrong clock and switches its lamp on. 🔴 Six parking sensors start retrying every 5 s, all together |
+| 06:42 | 🔴 Gateway GW-NKH-01 runs out of memory, and the 8 devices behind it go offline |
+| 08:41 | 🟠 Parking sensor PK-RWD-03 drops to 4 % battery |
+| 09:00 | 👩‍🔧 The technician starts the shift and asks PulseNet |
+
+## 4. How PulseNet works
+
+```mermaid
+flowchart LR
+    T(["👩‍🔧 Technician"]) <--> H
+
+    subgraph H["Harness (agent.py)"]
+        direction TB
+        L["Agent loop<br/>LLM via OpenRouter"]
+        P{"Permission check<br/>read: allow<br/>change: ask the technician<br/>traffic lights: deny"}
+        L --> P
+    end
+
+    P -->|MCP| S["iot_mcp.py<br/>device management server"]
+    P --> R["search_runbooks<br/>RAG over runbooks + GSMA"]
+    P --> K["open_ticket"]
+
+    S --> DB[("city.sqlite<br/>devices · config · logs")]
+    K --> DB
+    R --> RB[["runbooks/*.md"]]
+```
+
+**Planned tools** (part 3):
+
+| Tool | What it does | Read / change | Over MCP | Needs approval |
+|---|---|---|---|---|
+| `list_devices` | devices by district, type or status | read | ✅ | no |
+| `get_device_status` | status, battery, signal, firmware, config | read | ✅ | no |
+| `search_logs` | search the device logs | read | ✅ | no |
+| `reboot_device` | restart a device or gateway | change | ✅ | ✅ |
+| `update_config` | change one setting on one or more devices | change | ✅ | ✅ |
+| `search_runbooks` | find the right procedure (RAG) | read | | no |
+| `open_ticket` | hand a job to a field team | change (no effect on devices) | | no |
+
+Traffic controllers are blocked in code. The agent cannot change them even if the technician approves.
+
+A typical exchange:
+
+```mermaid
+sequenceDiagram
+    actor T as Technician
+    participant A as PulseNet
+    participant M as MCP server
+    T->>A: Parking and lights in Al-Nakheel show nothing since early morning
+    A->>M: get_device_status(GW-NKH-01)
+    M-->>A: offline since 06:42, 0 of 8 devices connected
+    A->>M: search_logs("GW-NKH-01")
+    M-->>A: packet forwarder killed: out of memory
+    A->>A: search_runbooks("gateway offline") → RB-01
+    A->>T: Cause and fix. Reboot GW-NKH-01? 8 devices stay offline for ~3 min
+    T->>A: yes
+    A->>M: reboot_device(GW-NKH-01)
+    M-->>A: online, 8 of 8 devices back
+    A->>T: Fixed. Suggest a ticket to check the memory leak
+```
+
+## 5. The language models
+
+The course runs every lab on **free models through [OpenRouter](https://openrouter.ai)**, so I did the same.
+
+| Role | Model | Notes |
 |---|---|---|
-| 1 | From a Language Model to an Agent | [day1](https://sdaiaacademy.github.io/agentic-ai/slides/day1.html) |
-| 2 | Context Engineering | [day2](https://sdaiaacademy.github.io/agentic-ai/slides/day2.html) |
-| 3 | Harness & Loop Engineering | [day3](https://sdaiaacademy.github.io/agentic-ai/slides/day3.html) |
-| 4 | Graph Engineering & Production | [day4](https://sdaiaacademy.github.io/agentic-ai/slides/day4.html) |
-| 5 | Capstone Project Presentations | [day5](https://sdaiaacademy.github.io/agentic-ai/slides/day5.html) |
+| Course default | `google/gemma-4-31b-it:free` | Returned **HTTP 429** (rate-limited by the provider) on every try on 27 Oct 2026. |
+| **Main model** | `nvidia/nemotron-3.5-super-vl:free` | Open mixture-of-experts model (120B total, 12B active), supports tool calling, 1M-token context. Worked on the first try. |
+| Fallback 1 | `nvidia/nemotron-3-ultra-550b-a55b:free` | Larger reasoning model, used if the main one is busy. |
+| Fallback 2 | `thinkingmachines/inkling:free` | Different provider, so one outage does not stop everything. |
+| Fallback 3 | `google/gemma-4-31b-it:free` | The course default, kept as last resort. |
 
-Each day has four sessions. Every session is about 20–25 minutes of concepts and demos followed by a 25-minute lab.
+**What I changed:** only configuration, in `labs/.env` (`AGENT_MODEL` and `AGENT_FALLBACKS`). The course code already
+sends a list of models to OpenRouter, which moves to the next one when a model is rate-limited.
 
-## How the course is organised
+**Why not decide by benchmark alone:** free models appear and disappear often, and a leaderboard score does not tell
+me how a model behaves with *my* tools. The eval in part 5 will compare configurations on my own 15+ tasks, which
+is the evidence I will use.
 
-The days climb the ladder practitioners now use to describe agent work, **prompt → context → harness → loop → graph engineering**, with evaluation, security and production as cross-cutting skills:
+## 6. Repository map
 
-| Rung | What you engineer | Where |
-|---|---|---|
-| Prompt | what an LLM is, the chat format, system prompts as specifications, structured outputs, tools, the loop | Day 1 |
-| Context | what enters the window: budgets, compaction, retrieval, memory, Agent Skills, MCP | Day 2 |
-| Harness | everything around the model: tools, permissions, hooks, sandbox, sessions, SDKs | Day 3 · S1–S2 |
-| Loop | outer loops with fresh context, back-pressure and exits; evals | Day 3 · S3–S4 |
-| Graph | explicit workflows with typed state, human gates, checkpoints, many agents | Day 4 · S1–S2 |
-
-Design choices, and the evidence behind them (October 2026):
-
-- **Three API shapes.** OpenAI's Responses API, Anthropic's Messages API and Chat Completions are served by most inference engines and gateways (vLLM, SGLang, llama.cpp, Ollama, LM Studio, LiteLLM, OpenRouter, Hugging Face). Day 1 gives each one a session, and every lab tool is generated for all three. OpenAI's Decisions and Agents APIs and Anthropic's Managed Agents are taught from their official docs and emulated on free models (they are vendor-only and paid).
-- **Open harnesses** went mainstream in 2026. Pi, OpenClaw, Hermes Agent and Mercury Agent are taken apart on dimensions (loop, context files, memory, skills, permissions, sandbox), and their security incidents feed Day 4.
-- **Free models only.** Gemma 4 on OpenRouter by default (`google/gemma-4-31b-it:free`, with fallbacks), with Qwen and Gemma on Hugging Face. Model choice is taught from public benchmarks ([Artificial Analysis](https://artificialanalysis.ai/), [LMArena](https://lmarena.ai/leaderboard), [BFCL](https://gorilla.cs.berkeley.edu/leaderboard.html), [τ²-bench](https://taubench.com), [Terminal-Bench](https://www.tbench.ai/leaderboard)) and then the participant's own eval. Nothing downloads an LLM; small Qwen and Gemma models are optional for local experiments.
-- **Python via uv**: notebooks for labs; standalone programs (MCP and A2A servers, the loop runner, the API, the CI eval, the capstone starter) are single-file [PEP 723](https://peps.python.org/pep-0723/) scripts run with `uv run`.
-
-The whole week follows one case study: **Madar Municipal Services**, a fictional municipality, and **Rafeeq (رفيق)**, its bilingual permit assistant. The policies, database, inbox (with two hidden prompt injections), a small buggy library and the eval tasks are synthetic and generated by `labs/prepare_data.py`.
-
-## Repository
+Only the folders I added or changed are described in detail. The rest is the course material, unchanged.
 
 ```
-index.html          course page (GitHub Pages)
-nuggets.md          the knowledge map: every concept, where it is taught, and what it depends on
-slides/             one HTML deck per day
-labs/               notebooks, case-study data, shared helpers, servers, loop runner, CI eval, capstone kit
-.github/workflows/  the smoke eval (Lab 4.4)
+pulseNet_agents/
+├── README.md                     ← this file (replaced the course README)
+├── docs/images/                  ← pictures used in this README
+├── labs/
+│   ├── .env                      ← my OpenRouter key and model choice (never uploaded, git ignores it)
+│   ├── pulsenet/                 ← ★ my project
+│   │   ├── prepare_city.py       ← turns the data files into city.sqlite
+│   │   └── data/
+│   │       ├── devices.json      ← the 38 devices: type, district, status, battery, signal, firmware, config
+│   │       ├── logs.txt          ← one night of device logs (50 lines) with the clues for each fault
+│   │       ├── runbooks/         ← 9 procedures the agent searches (RB-01 … RB-08 + GSMA TS.34 excerpts)
+│   │       └── city.sqlite       ← built by prepare_city.py (not uploaded)
+│   ├── capstone/                 ← the course starter kit; my agent will reuse its harness pattern
+│   ├── agentkit.py               ← course library: agent loop, MCP bridge, model calls, cache
+│   ├── evals.py                  ← course library: graders and eval runner
+│   ├── servers/                  ← course MCP servers (Madar example)
+│   └── D1_… D4_ notebooks        ← the course labs
+└── slides/                       ← the course slides
 ```
 
-Labs run on any laptop CPU with [uv](https://docs.astral.sh/uv/) or on Google Colab (one click from the course page): see [labs/README.md](labs/README.md).
+## 7. How to run (what works today)
 
-## Sources
+Requirements: Python, [`uv`](https://docs.astral.sh/uv/), a free OpenRouter key.
 
-**The engineering ladder**
-- Kirill, [prompt → context → harness → loop → graph engineering](https://x.com/kirillk_web3/status/2088682533278077382); Akshay Pachaar, [on the same progression](https://x.com/akshay_pachaar/status/2081356379026280677); Peter Steinberger, [on loops](https://x.com/steipete/status/2078277297791189132)
-- Anthropic, [Building effective agents](https://www.anthropic.com/engineering/building-effective-agents)
+```bash
+cd labs
+cp .env.example .env              # then put OPENROUTER_API_KEY=... in .env
+uv sync                           # installs the course dependencies
+uv run python pulsenet/prepare_city.py
+# → wrote .../city.sqlite with 38 devices
+```
 
-**Context engineering**
-- Anthropic, [Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents); Simon Willison, [Context engineering](https://simonwillison.net/2025/jun/27/context-engineering/)
-- Chroma, [Context rot](https://research.trychroma.com/context-rot); Drew Breunig, [How to fix your context](https://www.dbreunig.com/2025/06/26/how-to-fix-your-context.html); LangChain, [Context engineering for agents](https://www.langchain.com/blog/context-engineering-for-agents)
-- Manus, [Context engineering for AI agents: lessons from building Manus](https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus)
-- Anthropic, [Equipping agents for the real world with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) and [Code execution with MCP](https://www.anthropic.com/engineering/code-execution-with-mcp); [AGENTS.md](https://agents.md/)
+## 8. Build log, step by step
 
-**APIs and providers**
-- OpenRouter, [Responses API](https://openrouter.ai/docs/api/reference/responses/overview), [Anthropic Messages](https://openrouter.ai/docs/api/api-reference/anthropic-messages/create-a-message), [model fallbacks](https://openrouter.ai/docs/guides/routing/model-fallbacks), [structured outputs](https://openrouter.ai/docs/guides/features/structured-outputs), [tool calling](https://openrouter.ai/docs/guides/features/tool-calling), [prompt caching](https://openrouter.ai/docs/guides/best-practices/prompt-caching), [limits](https://openrouter.ai/docs/api/reference/limits)
-- [Open Responses](https://www.openresponses.org); Hugging Face, [Inference Providers](https://huggingface.co/docs/inference-providers/index) and [Responses API](https://huggingface.co/docs/inference-providers/guides/responses-api); llama.cpp, [Anthropic Messages API support](https://huggingface.co/blog/ggml-org/anthropic-messages-api-in-llamacpp); LM Studio, [Anthropic compatibility](https://lmstudio.ai/docs/developer/anthropic-compat)
-- OpenAI, [Migrate to the Responses API](https://developers.openai.com/api/docs/guides/migrate-to-responses), [Decisions API](https://developers.openai.com/api/docs/guides/decisions) and [DevDay 2026 recap](https://openai.com/index/devday-2026-recap/) (Agents API)
-- Anthropic, [Claude API and Messages](https://platform.claude.com/docs/en/intro) and [Claude Managed Agents](https://platform.claude.com/docs/en/managed-agents/overview)
+**Step 1: reading the brief.** I went through the capstone README in `labs/capstone/` and listed the five minimum
+requirements: 3+ tools with one over MCP; a context file plus retrieval or memory plus a compaction rule; approval
+for at least one write action with step and cost budgets; 15+ eval tasks on two configurations with error analysis;
+a security note with one attack and one defence.
 
-**Harnesses and SDKs**
-- OpenAI, [Harness engineering](https://openai.com/index/harness-engineering/); Birgitta Böckeler, [Harness engineering](https://martinfowler.com/articles/harness-engineering.html); Anthropic, [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) and [Writing effective tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents)
-- [Pi](https://github.com/earendil-works/pi) ([how Pi works](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/how-pi-works.md)); [OpenClaw](https://github.com/openclaw/openclaw) ([background](https://en.wikipedia.org/wiki/OpenClaw)); [Hermes Agent](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory); [Mercury Agent](https://github.com/cosmicstack-labs/mercury-agent)
-- [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) ([other models](https://openai.github.io/openai-agents-python/models/)); Hugging Face, [agents and MCP on the Hub](https://huggingface.co/docs/hub/agents-mcp)
+**Step 2: choosing the domain.** My background is computer networks and IoT, so I chose Track 2 with an IoT
+operations agent. I first considered a hospital (building sensors and patient devices) but settled on a
+municipality's smart-city network: it is easier to keep fully synthetic, it has no patient data, and it still has
+a clear safety boundary (traffic lights).
 
-**Loops, evals and multi-agent systems**
-- Geoffrey Huntley, [Ralph](https://ghuntley.com/ralph/)
-- Anthropic, [Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) and [How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system); Cognition, [Don't build multi-agents](https://cognition.ai/blog/dont-build-multi-agents)
+**Step 3: setting up.** Forked the course repository as `pulseNet_agents`, installed `uv`, created `labs/.env` with
+my OpenRouter key, ran `uv sync`, and ran the course starter agent once to check that the key, the MCP connection
+and the agent loop work end to end.
 
-**Protocols, graphs and production**
-- Model Context Protocol, [versioning](https://modelcontextprotocol.io/specification/versioning) and [2026-07-28 changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog); [MCP Python SDK v2 migration](https://py.sdk.modelcontextprotocol.io/v2/migration/); [MCP registry](https://registry.modelcontextprotocol.io)
-- [A2A protocol](https://a2a-protocol.org/); [LangGraph](https://docs.langchain.com/oss/python/langgraph/overview); [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
+**Step 4: the model problem.** The first run failed with HTTP 429 on the course default model. The key itself was
+valid (OpenRouter's key endpoint showed a free-tier key with nothing used), so the problem was the shared free
+model being busy. I listed the free models that support tool calling, switched the main model to Nemotron 3.5 Super,
+and the starter agent answered correctly, calling its search tool and citing the policy.
 
-**Security and governance**
-- OWASP GenAI Security Project, [Top 10 for Agentic Applications for 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
-- Simon Willison, [The lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/) and [the dual LLM pattern](https://simonwillison.net/2023/Apr/25/dual-llm-pattern/); Debenedetti et al., [Defeating prompt injections by design (CaMeL)](https://arxiv.org/abs/2503.18813)
-- Saudi Personal Data Protection Law (PDPL) and SDAIA's AI Ethics Principles ([sdaia.gov.sa](https://sdaia.gov.sa/))
+**Step 5: designing the faults first.** Before writing any data I chose six faults and one attack, each with a
+symptom the agent can see, a cause it has to find, and a correct action (reboot, config change, ticket, or refuse).
+This way every eval task later has one clear right answer.
 
-**Further courses**
-- DeepLearning.AI, [MCP](https://www.deeplearning.ai/short-courses/mcp-build-rich-context-ai-apps-with-anthropic/), [Agent Skills](https://www.deeplearning.ai/short-courses/agent-skills-with-anthropic/) and [A2A](https://www.deeplearning.ai/short-courses/a2a-the-agent2agent-protocol/) short courses
+**Step 6: building the data.** I wrote `devices.json` (38 devices in 3 districts), then `logs.txt` as one coherent
+night so the clues line up in time (the power cut explains both the storm and the clock reset). Then eight runbooks
+in the style of real operations procedures, each with symptoms, diagnosis and fix.
+
+**Step 7: adding a real source.** I downloaded GSMA TS.34 from Hugging Face, picked the requirements about
+randomised reconnection and the Annex A.1 incident, and added them as a ninth document. A short script compared
+each quote with the original text; all six matched.
+
+**Step 8: the database.** `prepare_city.py` loads the JSON and the logs into SQLite with five tables: `devices`,
+`config`, `logs`, `tickets`, `audit_log`. The tools in part 3 will read and write these tables.
+
+*(Parts 3 to 7 will be added here as they are built.)*
+
+## 9. Security (planned)
+
+PulseNet holds all three legs of the **lethal trifecta** from the course:
+
+- **Private data:** device configuration and camera details.
+- **Untrusted content:** device descriptions and log lines can be written by an attacker (CAM-RWD-02 already
+  contains one).
+- **Ability to act:** reboots and configuration changes.
+
+The attack and the defences will be documented here after part 6.
+
+## 10. Credits
+
+- Course material and harness code: [SDAIA Academy, Agentic AI Systems Engineering](https://github.com/SDAIAAcademy/agentic-ai).
+- GSMA TS.34 v12.0 excerpts © 2025 GSM Association, via [huggingface.co/datasets/GSMA/gsma](https://huggingface.co/datasets/GSMA/gsma).
+- All devices, places, logs and incidents in this project are fictional.

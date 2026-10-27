@@ -11,3 +11,4 @@ labs/data/madar.sqlite
 labs/data/inbox.jsonl
 .pytest_cache/
 .shots/
+labs/pulsenet/data/city.sqlite
