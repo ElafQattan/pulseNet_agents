@@ -1,8 +1,7 @@
 ---
 id: RB-01
 title: LoRaWAN gateway offline
-title_ar: بوابة LoRaWAN متوقفة
-keywords_ar: بوابة طافية، انقطاع حي كامل، أجهزة غير متصلة، إعادة تشغيل البوابة
+keywords: gateway down, whole district offline, devices not reporting, no data on the dashboard, restart gateway
 ---
 # LoRaWAN gateway offline
 

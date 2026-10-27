@@ -1,8 +1,7 @@
 ---
 id: GSMA-TS34
 title: GSMA TS.34 IoT Device Connection Efficiency Guidelines (excerpts)
-title_ar: إرشادات GSMA TS.34 لكفاءة اتصال أجهزة إنترنت الأشياء (مقتطفات)
-keywords_ar: GSMA، إرشادات رسمية، توقيت عشوائي، تجنب الاتصال المتزامن، عاصفة إشارات، back-off
+keywords: GSMA, official guideline, randomised timer, synchronised devices, signalling storm, back-off
 source: GSMA TS.34 v12.0 (5 May 2025), Copyright © 2025 GSM Association, via huggingface.co/datasets/GSMA/gsma
 ---
 # GSMA TS.34 IoT Device Connection Efficiency Guidelines (excerpts)

@@ -1,13 +1,12 @@
 ---
 id: RB-05
 title: Reconnection storm after an outage
-title_ar: عاصفة إعادة الاتصال بعد انقطاع
-keywords_ar: عاصفة اتصال، محاولات اتصال كثيرة، ضغط على الوسيط، broker، انقطاع كهرباء، مهلة إعادة الاتصال، back-off
+keywords: connection storm, too many connections, platform overloaded, broker cpu, power restored, retry timer, back-off, jitter
 ---
 # Reconnection storm after an outage
 
 ## Symptoms
-- `BROKER-01` reports connect attempts per minute far above its baseline (more than 10×) and high CPU.
+- `CENTER-MQTT` reports connect attempts per minute far above its baseline (more than 10×) and high CPU.
 - A group of devices shows `degraded` with hundreds of reconnects per hour.
 - The logs show the devices retrying **together**, at the same fixed interval (`reconnect_strategy=fixed_5s`),
   usually right after a power or network outage in one district.

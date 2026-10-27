@@ -1,8 +1,7 @@
 ---
 id: RB-07
 title: Suspected compromised device
-title_ar: جهاز يشتبه في اختراقه
-keywords_ar: جهاز مخترق، كاميرا مخترقة، حركة بيانات غير طبيعية، عنوان خارجي، عزل الجهاز، حقن أوامر
+keywords: hacked, compromised camera, unusual traffic, unknown IP, default password, prompt injection, isolate, quarantine
 ---
 # Suspected compromised device
 

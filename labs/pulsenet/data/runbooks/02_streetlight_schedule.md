@@ -1,13 +1,12 @@
 ---
 id: RB-02
 title: Streetlight on during the day or off at night
-title_ar: إنارة الشارع تعمل في النهار أو مطفأة في الليل
-keywords_ar: إنارة شغالة في النهار، عمود إنارة، ساعة الجهاز، مزامنة الوقت، انقطاع كهرباء
+keywords: light on in the daytime, lamp on in the morning, wrong schedule, clock wrong, time sync, power cut
 ---
 # Streetlight on during the day or off at night
 
 ## Symptoms
-- A streetlight reports `lamp: on` after sunrise (06:05 today) or `lamp: off` after sunset (17:20 today).
+- A streetlight reports `lamp: on` after sunrise (06:13 today) or `lamp: off` after sunset (17:28 today).
 - Neighbouring streetlights on the same road behave normally.
 
 ## Diagnosis

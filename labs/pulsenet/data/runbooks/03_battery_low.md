@@ -1,8 +1,7 @@
 ---
 id: RB-03
 title: Low battery on battery-powered sensors
-title_ar: بطارية منخفضة في الحساسات
-keywords_ar: بطارية ضعيفة، تبديل البطارية، حساس موقف، عداد مياه
+keywords: battery low, flat battery, replace battery, parking sensor, water meter, late reports
 ---
 # Low battery on battery-powered sensors
 

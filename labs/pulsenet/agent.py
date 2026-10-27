@@ -3,7 +3,7 @@
 # dependencies = ["openai>=3.30", "pydantic>=2.12", "python-dotenv>=1.1", "pandas>=2.2", "mcp>=2.3"]
 # ///
 # PulseNet: run from labs/
-#   uv run pulsenet/agent.py ask "Al-Nakheel parking shows nothing since the morning"
+#   uv run pulsenet/agent.py ask "Good morning, what broke during last night's rain?"
 #   uv run pulsenet/agent.py chat
 
 import argparse
@@ -27,7 +27,7 @@ OUT = K.lab_dir("pulsenet")
 SPEC = (HERE / "AGENTS.md").read_text(encoding="utf-8")
 MAX_STEPS = 12              # tool rounds before the harness stops the agent
 MAX_COST = 0.05             # dollars per request (free models cost 0, so the step limit is what bites)
-MAX_RESULT_CHARS = 3000     # longer tool results are cut so they don't fill the context window
+MAX_RESULT_CHARS = 6000     # longer tool results are cut so they don't fill the context window
 MAX_HISTORY_MESSAGES = 24   # chat mode keeps only the last messages (compaction rule)
 
 
@@ -39,18 +39,22 @@ def mcp_server(workdir):
 
 
 def all_tools(city, mcp):
-    local = [city.search_runbooks, city.open_ticket]
+    local = [city.search_runbooks, city.open_ticket, city.list_tickets]
     return local + mcp.agent_tools()
 
 
 # ---------------------------------------------------------------- harness: permissions, approvals, audit
-YES_WORDS = ("y", "yes", "ok", "نعم", "ايوا", "إيوا", "اي", "أي", "تمام", "موافق")
+YES_WORDS = ("y", "yes", "ok", "approve", "approved", "sure")
+
+
+def is_critical(device_id):
+    return any(part in device_id.upper() for part in ("-TRAFFIC-", "-TUNNEL-", "CENTER-MQTT"))
 
 
 def permission(name, args):
     # critical systems are blocked in code, whatever the model or the technician says
     targets = args.get("device_ids") or [args.get("device_id", "")]
-    if name in City.CHANGE_TOOLS and any(str(t).upper().startswith(("TL-", "BROKER")) for t in targets):
+    if name in City.CHANGE_TOOLS and any(is_critical(str(t)) for t in targets):
         return "deny"
     return "allow"
 
@@ -107,7 +111,7 @@ def read_line(prompt):
 
 
 def main():
-    # Windows terminals don't always use UTF-8; Arabic needs it
+    # Windows terminals don't always use UTF-8
     sys.stdin.reconfigure(encoding="utf-8", errors="replace")
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()

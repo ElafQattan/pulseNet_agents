@@ -1,8 +1,7 @@
 ---
 id: RB-04
 title: Weak radio signal (LoRaWAN and NB-IoT)
-title_ar: إشارة لاسلكية ضعيفة (LoRaWAN و NB-IoT)
-keywords_ar: إشارة ضعيفة، قراءات متأخرة، إعادة إرسال، عداد مياه، تغطية، هوائي
+keywords: weak signal, poor coverage, late readings, retransmissions, retries, antenna, underground chamber
 ---
 # Weak radio signal (LoRaWAN and NB-IoT)
 
