@@ -12,9 +12,9 @@
 |---|---|
 | 1 · Setup (repo, `uv`, API key, first run) | ✅ done |
 | 2 · Synthetic city data and runbooks (RAG source) | ✅ done |
-| 3 · Tools and the MCP server | ⏳ next |
-| 4 · `AGENTS.md`, permissions, approvals, budgets | ⏳ |
-| 5 · Eval suite (15+ tasks) on configurations A and B | ⏳ |
+| 3 · Tools and the MCP server | ✅ done |
+| 4 · `AGENTS.md`, permissions, approvals, budgets | ✅ done |
+| 5 · Eval suite (15+ tasks) on configurations A and B | ⏳ next |
 | 6 · Attack and defence | ⏳ |
 | 7 · Slides and demo | ⏳ |
 
@@ -88,7 +88,7 @@ flowchart LR
     R --> RB[["runbooks/*.md"]]
 ```
 
-**Planned tools** (part 3):
+**Tools:**
 
 | Tool | What it does | Read / change | Over MCP | Needs approval |
 |---|---|---|---|---|
@@ -96,11 +96,22 @@ flowchart LR
 | `get_device_status` | status, battery, signal, firmware, config | read | ✅ | no |
 | `search_logs` | search the device logs | read | ✅ | no |
 | `reboot_device` | restart a device or gateway | change | ✅ | ✅ |
-| `update_config` | change one setting on one or more devices | change | ✅ | ✅ |
-| `search_runbooks` | find the right procedure (RAG) | read | | no |
+| `update_config` | change `time_sync`, `reconnect_strategy` or `network_access` on one or more devices | change | ✅ | ✅ |
+| `search_runbooks` | find the right procedure (RAG, BM25) | read | | no |
 | `open_ticket` | hand a job to a field team | change (no effect on devices) | | no |
 
-Traffic controllers are blocked in code. The agent cannot change them even if the technician approves.
+Traffic controllers and the broker are blocked **twice**: the harness denies the call before it runs, and the tool
+itself refuses critical devices. The agent cannot change them even if the technician approves.
+
+### Design across the ladder
+
+| Rung | My decision | Why |
+|---|---|---|
+| Prompt | [`AGENTS.md`](labs/pulsenet/AGENTS.md) as the system prompt; fixed reply shape *Cause · Evidence · Fix · Approval needed*; short tool descriptions written for the model | A technician reads the answer under pressure, so the shape is always the same |
+| Context | RAG over 9 runbooks with BM25, split by section and tagged with Arabic keywords; tool results cut at 3,000 characters; chat history kept to the last 24 messages | Logs and device lists can be long; the model only needs the relevant part |
+| Harness | Reads and tickets allowed; reboots and config changes stop for the technician's approval; traffic controllers and broker denied in code; 12-step budget; every call written to `audit.jsonl` | Changes on a live city network must have a human owner |
+| Loop | Not needed | Each request is one diagnosis; there is no "keep trying until a test passes" job |
+| Graph | Not needed for now | The order of steps changes with the fault, and the runbooks already describe it; a fixed graph would add rigidity |
 
 A typical exchange:
 
@@ -152,6 +163,10 @@ pulseNet_agents/
 ├── labs/
 │   ├── .env                      ← my OpenRouter key and model choice (never uploaded, git ignores it)
 │   ├── pulsenet/                 ← ★ my project
+│   │   ├── agent.py              ← the agent: loop, permissions, approvals, budgets, audit log (run this)
+│   │   ├── AGENTS.md             ← the agent's instructions (its system prompt)
+│   │   ├── city.py               ← the 7 tools and the runbook search (BM25)
+│   │   ├── iot_mcp.py            ← MCP server that exposes 5 of the tools, like a real device platform
 │   │   ├── prepare_city.py       ← turns the data files into city.sqlite
 │   │   └── data/
 │   │       ├── devices.json      ← the 38 devices: type, district, status, battery, signal, firmware, config
@@ -176,6 +191,19 @@ cp .env.example .env              # then put OPENROUTER_API_KEY=... in .env
 uv sync                           # installs the course dependencies
 uv run python pulsenet/prepare_city.py
 # → wrote .../city.sqlite with 38 devices
+
+uv run pulsenet/agent.py ask "Parking and streetlights in Al-Nakheel show nothing since early morning. What happened?"
+uv run pulsenet/agent.py chat     # a conversation; works in Arabic too
+```
+
+Every run starts from the same broken city (a fresh copy in `labs/artifacts/pulsenet/live/`), so a demo can be
+repeated as many times as needed. When the agent wants to change something, the terminal shows:
+
+```
+────────────────────────────────────────────────────────────
+🛡️  PulseNet wants to run: reboot_device
+    {"device_id": "GW-NKH-01"}
+    Approve? [y/N]
 ```
 
 ## 8. Build log, step by step
@@ -214,7 +242,37 @@ each quote with the original text; all six matched.
 **Step 8: the database.** `prepare_city.py` loads the JSON and the logs into SQLite with five tables: `devices`,
 `config`, `logs`, `tickets`, `audit_log`. The tools in part 3 will read and write these tables.
 
-*(Parts 3 to 7 will be added here as they are built.)*
+**Step 9: the tools.** `city.py` holds the seven tools as plain Python functions over the database. Each change
+tool has a realistic effect: rebooting the Al-Nakheel gateway brings its 8 devices back; switching the Al-Waha
+sensors to `exponential_jitter` calms the broker once none is left on the fixed timer; `time_sync=ntp` fixes the
+streetlight clock. Wrong inputs (unknown ID, a setting the device doesn't have, a value outside the list) return a
+clear error the model can read and correct. I tested every tool and every guard directly in Python before
+connecting any model.
+
+**Step 10: retrieval.** The runbook search is a small BM25 written by hand (about 20 lines), the same method as
+Lab 2.2. Each runbook is split by section so the agent gets a focused passage, and each carries Arabic keywords so
+a question in Arabic finds the English runbook. Checks: "gateway offline out of memory" → RB-01,
+"عاصفة إعادة الاتصال" → RB-05, "إنارة شغالة في النهار" → RB-02.
+
+**Step 11: the MCP server.** `iot_mcp.py` exposes the five device tools over MCP, the way a real device
+management platform would. The agent starts it as a separate process and both sides work on the same database
+file, so a reboot done through MCP is visible to the agent's own tools straight away.
+
+**Step 12: the agent and its harness.** `agent.py` follows the pattern of the course starter, with my tools and
+my rules. `AGENTS.md` became the system prompt. Approvals are a `before_tool` hook: the run stops, the technician
+sees exactly what will change, and a "no" returns a clear message to the model ("the technician did not approve,
+nothing was changed, do not retry"). Critical devices are denied by the `permission` hook before any of that.
+
+**Step 13: first real runs, and three fixes.**
+1. OpenRouter rejected the request: at most 3 models per call (main + 2 fallbacks). I removed one fallback.
+2. Arabic typed into the Windows terminal arrived garbled. The agent now reads and writes UTF-8 explicitly.
+3. "ايوا اعد تشغيلها" was not accepted as a yes, because the check expected a single word. It now reads the
+   first word, in English or Arabic.
+
+After that, the test conversation in Arabic went through end to end: the agent listed the district, read the
+gateway status and logs, found RB-01, asked to reboot GW-NKH-01, and confirmed all 8 devices were back.
+
+*(Parts 5 to 7 will be added here as they are built.)*
 
 ## 9. Security (planned)
 
