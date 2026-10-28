@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import sqlite3
 from pathlib import Path
@@ -35,7 +36,10 @@ class ToolError(Exception):
 
 def untrusted(text):
     # text written by a device is wrapped so the model can see it is data, not an instruction
-    return f"<device_text>{text}</device_text>" if text else text
+    # (PULSENET_DEFENCES=off turns this off, only for the attack experiment in attack.py)
+    if not text or os.getenv("PULSENET_DEFENCES", "on") == "off":
+        return text
+    return f"<device_text>{text}</device_text>"
 
 
 class Network:

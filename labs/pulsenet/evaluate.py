@@ -6,6 +6,9 @@
 # Runs PulseNet on every task in tasks.jsonl, once per configuration, and grades each run automatically.
 #   uv run pulsenet/evaluate.py                      (both configurations, all tasks)
 #   uv run pulsenet/evaluate.py --config A --only diag-root-cause act-battery
+#   uv run pulsenet/evaluate.py --fresh              (forget earlier results and start again)
+# The free OpenRouter tier allows 50 requests a day. When it runs out the script saves what it has and stops;
+# run it again the next day and it continues with the tasks that are not done yet.
 
 import argparse
 import json
@@ -56,11 +59,33 @@ def run_task(task, config):
             "seconds": round(time.perf_counter() - start, 1), "final": final}
 
 
+def load_done(config):
+    # results kept from earlier runs; tasks that hit the rate limit are not "done"
+    path = RESULTS / f"eval_{config}.csv"
+    if not path.exists():
+        return []
+    rows = pd.read_csv(path, keep_default_na=False).to_dict("records")
+    answers = {}
+    if (RESULTS / f"answers_{config}.jsonl").exists():
+        for line in (RESULTS / f"answers_{config}.jsonl").read_text(encoding="utf-8").splitlines():
+            a = json.loads(line)
+            answers[a["id"]] = a["final"]
+    return [{**r, "final": answers.get(r["id"], "")} for r in rows if not str(r["failed_graders"]).startswith("RateLimit")]
+
+
+def save(config, rows):
+    pd.DataFrame(rows).drop(columns="final").to_csv(RESULTS / f"eval_{config}.csv", index=False)
+    with (RESULTS / f"answers_{config}.jsonl").open("w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps({"id": row["id"], "final": row["final"]}, ensure_ascii=False) + "\n")
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", nargs="+", default=["A", "B"])
     ap.add_argument("--only", nargs="*", help="task IDs to run (default: all)")
+    ap.add_argument("--fresh", action="store_true", help="ignore earlier results")
     args = ap.parse_args()
 
     tasks = [json.loads(line) for line in (HERE / "tasks.jsonl").read_text(encoding="utf-8").splitlines() if line]
@@ -68,17 +93,21 @@ def main():
         tasks = [t for t in tasks if t["id"] in args.only]
     RESULTS.mkdir(exist_ok=True)
     for config in args.config:
-        rows = []
-        print(f"\n=== configuration {config}: {CONFIGS[config]['about']} ===")
+        rows = [] if args.fresh else load_done(config)
+        done = {r["id"] for r in rows}
+        print(f"\n=== configuration {config}: {CONFIGS[config]['about']} ({len(done)} tasks already done) ===")
         for task in tasks:
+            if task["id"] in done and not args.only:
+                continue
             row = run_task(task, config)
-            rows.append(row)
+            if row["failed_graders"].startswith("RateLimit"):
+                print("⏸  the free daily limit is used up. Progress is saved; run the same command tomorrow.")
+                save(config, rows)
+                return
+            rows = [r for r in rows if r["id"] != task["id"]] + [row]
+            save(config, rows)  # after every task, so nothing is lost
             print(f"{'✅' if row['passed'] else '❌'} {task['id']:<26} {row['steps']:>2} steps  {row['failed_graders'][:90]}")
         df = pd.DataFrame(rows)
-        df.drop(columns="final").to_csv(RESULTS / f"eval_{config}.csv", index=False)
-        with (RESULTS / f"answers_{config}.jsonl").open("w", encoding="utf-8") as f:
-            for row in rows:
-                f.write(json.dumps({"id": row["id"], "final": row["final"]}, ensure_ascii=False) + "\n")
         print(f"pass rate {config}: {df.passed.mean():.0%} ({df.passed.sum()}/{len(df)})")
         print(df.groupby("category").passed.mean().round(2).to_string())
 
