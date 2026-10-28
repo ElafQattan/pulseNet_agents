@@ -1,0 +1,20 @@
+[project]
+name = "pulsenet"
+version = "1.0.0"
+description = "PulseNet: an autonomous network operations agent for a city network (capstone, SDAIA Academy Agentic AI Systems Engineering)"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "openai>=3.30",          # model calls (OpenRouter and Ollama speak the OpenAI API)
+    "pydantic>=2.12",        # tool argument schemas
+    "python-dotenv>=1.1",    # reads keys from .env
+    "httpx>=0.28",
+    "mcp>=2.3",              # the network tools are served over MCP
+    "bm25s>=0.3",            # keyword search
+    "model2vec>=0.10",       # embedding search
+    "huggingface-hub>=2.0",  # downloads the embedding model
+    "numpy>=2.0",
+    "pandas>=2.2",           # eval results
+]
+
+[tool.uv]
+package = false

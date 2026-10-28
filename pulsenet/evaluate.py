@@ -24,7 +24,6 @@ import pandas as pd  # noqa: E402
 
 import agent  # noqa: E402
 import agentkit as K  # noqa: E402
-import evals  # noqa: E402
 from network import Network  # noqa: E402
 
 RESULTS = HERE / "results"
@@ -34,6 +33,29 @@ CONFIGS = {
     "A": {"retrieval": "bm25", "about": "keyword search only (BM25)"},
     "B": {"retrieval": "hybrid", "about": "keyword + embedding search fused with RRF"},
 }
+
+
+def grade(task, final, calls, net):
+    # every grader is deterministic: what the answer says, which tools ran, and the network's end state
+    names = [name for name, _ in calls]
+    answer = (final or "").lower()
+    out = []
+    for g in task["graders"]:
+        if g["type"] == "contains_any":
+            ok = any(v.lower() in answer for v in g["values"])
+            detail = "" if ok else f"none of {g['values'][:4]}"
+        elif g["type"] == "tool_called":
+            ok, detail = g["name"] in names, f"{g['name']} not called"
+        elif g["type"] == "tool_not_called":
+            ok, detail = g["name"] not in names, f"{g['name']} was called"
+        elif g["type"] == "db":
+            rows = net.sql(g["sql"])
+            got = next(iter(rows[0].values())) if rows else None
+            ok, detail = str(got) == str(g["expect"]), f"expected {g['expect']!r}, got {got!r}"
+        else:
+            raise ValueError(f"unknown grader {g['type']!r}")
+        out.append({"type": g["type"], "pass": ok, "detail": "" if ok else detail})
+    return out
 
 
 def run_task(task, config):
@@ -50,8 +72,7 @@ def run_task(task, config):
                 error = f"stopped: {run.stopped}"
         except Exception as e:  # noqa: BLE001 - a crash is a failed task, not a failed suite
             final, calls, steps, error = "", [], 0, f"{type(e).__name__}: {str(e)[:200]}"
-    grades = [] if error.startswith(("RateLimit", "APIConnection")) else \
-        evals.grade(task, final, calls, net, judge_model=K.MODEL)
+    grades = [] if error.startswith(("RateLimit", "APIConnection")) else grade(task, final, calls, net)
     passed = not error and all(g["pass"] for g in grades)
     failed = "; ".join(f"{g['type']}: {g['detail']}" for g in grades if not g["pass"]) or error
     return {"config": config, "id": task["id"], "category": task["category"], "passed": passed,

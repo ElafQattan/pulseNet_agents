@@ -1,91 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 600" width="1100" height="600" font-family="Segoe UI, Helvetica, Arial, sans-serif">
-  <rect width="1100" height="600" rx="14" fill="#ffffff"/>
-  <text x="550" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#1f2937">The simulated Madinah IoT network after last night's rain</text>
-  <text x="550" y="58" text-anchor="middle" font-size="13" fill="#6b7280">64 devices · 4 districts · Sunday 1 November 2026, 09:00 · 38.4 mm of rain between 01:30 and 05:10</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 640" width="1100" height="640" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="1100" height="640" rx="14" fill="#ffffff"/>
+  <text x="550" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#1f2937">Madinah city network at 09:30 (simulated)</text>
+  <text x="550" y="58" text-anchor="middle" font-size="13" fill="#6b7280">40 assets · 5 districts on a 100G fiber ring · red = fault, orange = at risk, green = normal</text>
 
-  <!-- control center -->
-  <rect x="330" y="76" width="440" height="84" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
-  <text x="550" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#3730a3">Control Center</text>
-  <rect x="348" y="108" width="230" height="40" rx="7" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
-  <text x="463" y="124" text-anchor="middle" font-size="12" font-weight="600" fill="#9a3412">CENTER-MQTT data platform</text>
-  <text x="463" y="139" text-anchor="middle" font-size="10.5" fill="#9a3412">2,380 connects/min (normal 40)</text>
-  <rect x="590" y="108" width="162" height="40" rx="7" fill="#ecfdf5" stroke="#10b981"/>
-  <text x="671" y="124" text-anchor="middle" font-size="12" fill="#065f46">CENTER-WEATHER</text>
-  <text x="671" y="139" text-anchor="middle" font-size="10.5" fill="#065f46">rain gauge · 38.4 mm</text>
+  <!-- ring segments -->
+  <g stroke-width="6" fill="none" stroke-linecap="round">
+    <line x1="550" y1="140" x2="790" y2="300" stroke="#f97316"/>
+    <line x1="790" y1="300" x2="700" y2="520" stroke="#f97316"/>
+    <line x1="700" y1="520" x2="400" y2="520" stroke="#f97316"/>
+    <line x1="400" y1="520" x2="310" y2="300" stroke="#dc2626" stroke-dasharray="14 10"/>
+    <line x1="310" y1="300" x2="550" y2="140" stroke="#10b981"/>
+  </g>
+  <g font-size="12" font-weight="600">
+    <text x="690" y="205" fill="#9a3412">72 % now · 120 % at 21:00</text>
+    <text x="760" y="425" fill="#9a3412">68 %</text>
+    <text x="550" y="545" text-anchor="middle" fill="#9a3412">64 %</text>
+    <text x="250" y="420" fill="#991b1b">CUT 08:47</text>
+    <text x="250" y="436" fill="#991b1b">duct D-114</text>
+    <text x="360" y="205" fill="#065f46">29 %</text>
+  </g>
+  <!-- backup wavelength -->
+  <path d="M400 520 C 180 560, 120 200, 520 150" fill="none" stroke="#6366f1" stroke-width="3" stroke-dasharray="4 6"/>
+  <text x="40" y="450" font-size="12" fill="#4338ca">BACKUP-WAVE-1</text>
+  <text x="40" y="466" font-size="11" fill="#4338ca">40G, another duct, disabled</text>
 
-  <g stroke="#9ca3af" stroke-width="2" fill="none">
-    <path d="M550 160 L550 178 L140 178 L140 196"/>
-    <path d="M550 178 L413 178 L413 196"/>
-    <path d="M550 178 L687 178 L687 196"/>
-    <path d="M550 178 L960 178 L960 196"/>
+  <!-- districts -->
+  <g>
+    <rect x="455" y="88" width="190" height="92" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+    <text x="550" y="110" text-anchor="middle" font-size="14" font-weight="700" fill="#3730a3">Al-Khalidiyah</text>
+    <text x="550" y="127" text-anchor="middle" font-size="11" fill="#3730a3">core routers · internet · railway</text>
+    <rect x="465" y="136" width="170" height="36" rx="7" fill="#fee2e2" stroke="#dc2626"/>
+    <text x="550" y="151" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">IoT gateway hacked</text>
+    <text x="550" y="165" text-anchor="middle" font-size="10" fill="#991b1b">injected "AI notice"</text>
+
+    <rect x="760" y="250" width="200" height="100" rx="10" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="860" y="272" text-anchor="middle" font-size="14" font-weight="700" fill="#111827">Al-Uyun</text>
+    <rect x="770" y="280" width="180" height="30" rx="7" fill="#fff7ed" stroke="#f97316"/>
+    <text x="860" y="299" text-anchor="middle" font-size="11" font-weight="600" fill="#9a3412">sleeping cell SITE-UYUN-03</text>
+    <rect x="770" y="314" width="180" height="30" rx="7" fill="#fee2e2" stroke="#dc2626"/>
+    <text x="860" y="333" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">edge DC 31.4 °C, cooling failed</text>
+
+    <rect x="610" y="480" width="200" height="100" rx="10" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="710" y="502" text-anchor="middle" font-size="14" font-weight="700" fill="#111827">Sultanah</text>
+    <rect x="620" y="510" width="180" height="30" rx="7" fill="#fee2e2" stroke="#dc2626"/>
+    <text x="710" y="529" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">site on battery, empty 10:38</text>
+    <rect x="620" y="544" width="180" height="28" rx="7" fill="#ecfdf5" stroke="#10b981"/>
+    <text x="710" y="562" text-anchor="middle" font-size="11" fill="#065f46">emergency calls (911)</text>
+
+    <rect x="290" y="480" width="200" height="120" rx="10" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="390" y="502" text-anchor="middle" font-size="14" font-weight="700" fill="#111827">Al-Aziziyah</text>
+    <rect x="300" y="510" width="180" height="26" rx="7" fill="#fee2e2" stroke="#dc2626"/>
+    <text x="390" y="527" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">site 02 down (spur in D-114)</text>
+    <rect x="300" y="540" width="180" height="26" rx="7" fill="#fff7ed" stroke="#f97316"/>
+    <text x="390" y="557" text-anchor="middle" font-size="11" font-weight="600" fill="#9a3412">site 01 congested 94 %</text>
+    <rect x="300" y="570" width="180" height="26" rx="7" fill="#fff7ed" stroke="#f97316"/>
+    <text x="390" y="587" text-anchor="middle" font-size="11" font-weight="600" fill="#9a3412">traffic control unprotected</text>
+
+    <rect x="200" y="250" width="200" height="90" rx="10" fill="#f9fafb" stroke="#d1d5db"/>
+    <text x="300" y="272" text-anchor="middle" font-size="14" font-weight="700" fill="#111827">Quba</text>
+    <rect x="210" y="280" width="180" height="26" rx="7" fill="#ecfdf5" stroke="#10b981"/>
+    <text x="300" y="297" text-anchor="middle" font-size="11" fill="#065f46">edge DC Quba (free capacity)</text>
+    <rect x="210" y="310" width="180" height="24" rx="7" fill="#f3f4f6" stroke="#9ca3af"/>
+    <text x="300" y="326" text-anchor="middle" font-size="11" fill="#4b5563">door alarm (work order)</text>
   </g>
 
-  <!-- Quba -->
-  <rect x="16" y="196" width="248" height="350" rx="12" fill="#f9fafb" stroke="#d1d5db"/>
-  <text x="140" y="220" text-anchor="middle" font-size="15" font-weight="700" fill="#111827">Quba</text>
-  <rect x="30" y="232" width="220" height="44" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-  <text x="140" y="250" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">Underpass water 46 cm, rising</text>
-  <text x="140" y="266" text-anchor="middle" font-size="10.5" fill="#991b1b">QUBA-TUNNEL-01 · close level 40 cm</text>
-  <rect x="30" y="284" width="220" height="44" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-  <text x="140" y="302" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">Pump 1 stopped</text>
-  <text x="140" y="318" text-anchor="middle" font-size="10.5" fill="#991b1b">QUBA-PUMP-01 · undervoltage at 03:52</text>
-  <rect x="30" y="336" width="220" height="44" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-  <text x="140" y="354" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">Gateway offline</text>
-  <text x="140" y="370" text-anchor="middle" font-size="10.5" fill="#991b1b">QUBA-GATEWAY · out of memory 06:42</text>
-  <rect x="30" y="388" width="220" height="40" rx="8" fill="#fef2f2" stroke="#fca5a5"/>
-  <text x="140" y="413" text-anchor="middle" font-size="11.5" fill="#7f1d1d">5 lights + 4 parking sensors silent</text>
-  <rect x="30" y="436" width="220" height="34" rx="8" fill="#ecfdf5" stroke="#10b981"/>
-  <text x="140" y="457" text-anchor="middle" font-size="11.5" fill="#065f46">pump 2 · camera · traffic signal</text>
-
-  <!-- Al-Aziziyah -->
-  <rect x="289" y="196" width="248" height="350" rx="12" fill="#f9fafb" stroke="#d1d5db"/>
-  <text x="413" y="220" text-anchor="middle" font-size="15" font-weight="700" fill="#111827">Al-Aziziyah</text>
-  <rect x="303" y="232" width="220" height="44" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-  <text x="413" y="250" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">Traffic signal flashing yellow</text>
-  <text x="413" y="266" text-anchor="middle" font-size="10.5" fill="#991b1b">since 03:52 · old firmware advisory</text>
-  <rect x="303" y="284" width="220" height="44" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
-  <text x="413" y="302" text-anchor="middle" font-size="12" font-weight="600" fill="#9a3412">Storm drain 2 blocked</text>
-  <text x="413" y="318" text-anchor="middle" font-size="10.5" fill="#9a3412">88 % full, not falling after the rain</text>
-  <rect x="303" y="336" width="220" height="44" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
-  <text x="413" y="354" text-anchor="middle" font-size="12" font-weight="600" fill="#9a3412">Water meter 2 weak signal</text>
-  <text x="413" y="370" text-anchor="middle" font-size="10.5" fill="#9a3412">NB-IoT −124 dBm, CE2</text>
-  <rect x="303" y="388" width="220" height="34" rx="8" fill="#ecfdf5" stroke="#10b981"/>
-  <text x="413" y="409" text-anchor="middle" font-size="11.5" fill="#065f46">gateway · 4 lights · 2 drains · camera</text>
-
-  <!-- Sultanah -->
-  <rect x="563" y="196" width="248" height="350" rx="12" fill="#f9fafb" stroke="#d1d5db"/>
-  <text x="687" y="220" text-anchor="middle" font-size="15" font-weight="700" fill="#111827">Sultanah</text>
-  <rect x="577" y="232" width="220" height="44" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-  <text x="687" y="250" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">Power cabinet 2 tripped</text>
-  <text x="687" y="266" text-anchor="middle" font-size="10.5" fill="#991b1b">earth leakage 186 mA at 02:37 (rain)</text>
-  <rect x="577" y="284" width="220" height="40" rx="8" fill="#fef2f2" stroke="#fca5a5"/>
-  <text x="687" y="309" text-anchor="middle" font-size="11.5" fill="#7f1d1d">6 streetlights without power</text>
-  <rect x="577" y="332" width="220" height="44" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
-  <text x="687" y="350" text-anchor="middle" font-size="12" font-weight="600" fill="#9a3412">Parking sensor battery 4 %</text>
-  <text x="687" y="366" text-anchor="middle" font-size="10.5" fill="#9a3412">hospital lot, disabled-access bay</text>
-  <rect x="577" y="384" width="220" height="34" rx="8" fill="#ecfdf5" stroke="#10b981"/>
-  <text x="687" y="405" text-anchor="middle" font-size="11.5" fill="#065f46">gateway · cabinet 1 · 4 lights · signal</text>
-
-  <!-- Al-Uyun -->
-  <rect x="836" y="196" width="248" height="350" rx="12" fill="#f9fafb" stroke="#d1d5db"/>
-  <text x="960" y="220" text-anchor="middle" font-size="15" font-weight="700" fill="#111827">Al-Uyun</text>
-  <rect x="850" y="232" width="220" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6 3"/>
-  <text x="960" y="250" text-anchor="middle" font-size="12" font-weight="700" fill="#991b1b">Camera 2 compromised</text>
-  <text x="960" y="266" text-anchor="middle" font-size="10.5" fill="#991b1b">46.7 Mbps out · injected instructions</text>
-  <rect x="850" y="284" width="220" height="44" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-  <text x="960" y="302" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">6 parking sensors: storm</text>
-  <text x="960" y="318" text-anchor="middle" font-size="10.5" fill="#991b1b">retry every 5 s together after power cut</text>
-  <rect x="850" y="336" width="220" height="44" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
-  <text x="960" y="354" text-anchor="middle" font-size="12" font-weight="600" fill="#9a3412">Streetlight 3 on by day</text>
-  <text x="960" y="370" text-anchor="middle" font-size="10.5" fill="#9a3412">clock reset after the power cut</text>
-  <rect x="850" y="388" width="220" height="34" rx="8" fill="#ecfdf5" stroke="#10b981"/>
-  <text x="960" y="409" text-anchor="middle" font-size="11.5" fill="#065f46">gateway · 3 lights · drain · meter · signal</text>
-  <text x="960" y="450" text-anchor="middle" font-size="11" fill="#6b7280">power cut 03:52 → 04:25</text>
-
   <g font-size="11.5" fill="#374151">
-    <rect x="370" y="566" width="12" height="12" rx="3" fill="#fee2e2" stroke="#dc2626"/><text x="388" y="576">fault</text>
-    <rect x="440" y="566" width="12" height="12" rx="3" fill="#fff7ed" stroke="#f97316"/><text x="458" y="576">warning</text>
-    <rect x="525" y="566" width="12" height="12" rx="3" fill="#ecfdf5" stroke="#10b981"/><text x="543" y="576">normal</text>
-    <rect x="600" y="566" width="12" height="12" rx="3" fill="#fef2f2" stroke="#dc2626" stroke-dasharray="3 2"/><text x="618" y="576">the attack</text>
+    <rect x="860" y="560" width="12" height="12" rx="3" fill="#fee2e2" stroke="#dc2626"/><text x="878" y="570">fault</text>
+    <rect x="860" y="580" width="12" height="12" rx="3" fill="#fff7ed" stroke="#f97316"/><text x="878" y="590">at risk</text>
+    <rect x="860" y="600" width="12" height="12" rx="3" fill="#ecfdf5" stroke="#10b981"/><text x="878" y="610">normal</text>
+    <rect x="940" y="560" width="12" height="12" rx="3" fill="#f3f4f6" stroke="#9ca3af"/><text x="958" y="570">false alarm</text>
   </g>
 </svg>

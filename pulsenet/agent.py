@@ -3,7 +3,7 @@
 # dependencies = ["openai>=3.30", "pydantic>=2.12", "python-dotenv>=1.1", "pandas>=2.2", "mcp>=2.3",
 #                 "bm25s>=0.3", "model2vec>=0.10", "numpy>=2.0"]
 # ///
-# PulseNet: run from labs/
+# PulseNet: run from the repository root
 #   uv run pulsenet/agent.py ask "Good morning, what is wrong with the network?"
 #   uv run pulsenet/agent.py chat
 

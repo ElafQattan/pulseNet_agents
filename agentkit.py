@@ -282,8 +282,6 @@ def tool_schema(fn: Callable, shape: str = "chat") -> dict:
 
 def call_tool(tools: dict[str, Callable], name: str, arguments: str | dict) -> str:
     """Run one tool call and return what the model should see: the JSON result, or an error it can act on."""
-    from madar import ToolError  # local import keeps agentkit usable without the case study
-
     if name not in tools:
         return json.dumps({"error": f"Unknown tool {name!r}. Available: {sorted(tools)}"})
     try:
@@ -292,10 +290,12 @@ def call_tool(tools: dict[str, Callable], name: str, arguments: str | dict) -> s
         return json.dumps({"error": f"Arguments are not valid JSON ({e}). Send a JSON object."})
     try:
         result = tools[name](**args)
-    except ToolError as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False)
     except TypeError as e:  # wrong or missing arguments
         return json.dumps({"error": f"Bad arguments for {name}: {e}"})
+    except Exception as e:  # PulseNet: a tool's own ToolError (wrong ID, blocked action) goes back to the model
+        if type(e).__name__ != "ToolError":
+            raise
+        return json.dumps({"error": str(e)}, ensure_ascii=False)
     return result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, default=str)
 
 

@@ -1,15 +1,11 @@
+# secrets
+.env
+
+# generated or downloaded (rebuild with the commands in README)
 .venv/
+artifacts/
+cache/
 __pycache__/
-.ipynb_checkpoints/
-.DS_Store
-Thumbs.db
-labs/.env
-labs/artifacts/
-labs/cache/
+pulsenet/data/network.sqlite
+pulsenet/data/knowledge/standards/
 *.sqlite-journal
-labs/data/madar.sqlite
-labs/data/inbox.jsonl
-.pytest_cache/
-.shots/
-labs/pulsenet/data/knowledge/standards/
-labs/pulsenet/data/network.sqlite
