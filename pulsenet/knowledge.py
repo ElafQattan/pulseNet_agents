@@ -105,6 +105,8 @@ def search(query, k=4, mode=None):
     mode = mode or MODE
     if mode == "bm25":
         ranked = bm25_ranking(query, k)
+    elif mode == "embeddings":
+        ranked = embedding_ranking(query, k)
     else:
         # reciprocal rank fusion: a chunk ranked high by either method comes first
         fused = {}

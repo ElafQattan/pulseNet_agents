@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 620" width="1100" height="620" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+  </defs>
+  <rect width="1100" height="620" rx="14" fill="#ffffff"/>
+  <text x="550" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">PulseNet architecture</text>
+
+  <!-- engineer and API -->
+  <rect x="40" y="250" width="150" height="90" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="115" y="285" text-anchor="middle" font-size="15" font-weight="700" fill="#78350f">Engineer</text>
+  <text x="115" y="305" text-anchor="middle" font-size="11.5" fill="#78350f">asks, approves</text>
+  <text x="115" y="321" text-anchor="middle" font-size="11.5" fill="#78350f">every change</text>
+  <text x="115" y="370" text-anchor="middle" font-size="11" fill="#64748b">terminal chat</text>
+  <text x="115" y="386" text-anchor="middle" font-size="11" fill="#64748b">or HTTP API (api.py)</text>
+  <line x1="190" y1="295" x2="255" y2="295" stroke="#64748b" stroke-width="2" marker-end="url(#a)" marker-start="url(#a)"/>
+
+  <!-- harness -->
+  <rect x="260" y="70" width="400" height="510" rx="14" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+  <text x="460" y="98" text-anchor="middle" font-size="16" font-weight="700" fill="#115e59">Harness · agent.py</text>
+
+  <rect x="285" y="115" width="350" height="70" rx="10" fill="#ffffff" stroke="#0d9488"/>
+  <text x="460" y="142" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">Agent loop (LLM)</text>
+  <text x="460" y="162" text-anchor="middle" font-size="11.5" fill="#475569">system prompt AGENTS.md · think → call a tool → read result</text>
+  <text x="460" y="177" text-anchor="middle" font-size="11.5" fill="#475569">model via OpenRouter</text>
+
+  <rect x="285" y="200" width="350" height="54" rx="10" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="460" y="223" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0f172a">Memory · memory.py</text>
+  <text x="460" y="242" text-anchor="middle" font-size="11.5" fill="#475569">shift handover: changes, open tickets, unmet goals</text>
+
+  <text x="460" y="282" text-anchor="middle" font-size="13" font-weight="700" fill="#115e59">Guards · guards.py (enforced in code)</text>
+  <rect x="285" y="292" width="170" height="62" rx="10" fill="#fee2e2" stroke="#dc2626"/>
+  <text x="370" y="317" text-anchor="middle" font-size="12.5" font-weight="700" fill="#7f1d1d">1 Deny list</text>
+  <text x="370" y="335" text-anchor="middle" font-size="11" fill="#7f1d1d">core, railway, traffic,</text>
+  <text x="370" y="349" text-anchor="middle" font-size="11" fill="#7f1d1d">911: never changed</text>
+  <rect x="465" y="292" width="170" height="62" rx="10" fill="#fef3c7" stroke="#d97706"/>
+  <text x="550" y="317" text-anchor="middle" font-size="12.5" font-weight="700" fill="#78350f">2 Approval</text>
+  <text x="550" y="335" text-anchor="middle" font-size="11" fill="#78350f">every change waits</text>
+  <text x="550" y="349" text-anchor="middle" font-size="11" fill="#78350f">for the engineer</text>
+  <rect x="285" y="364" width="170" height="62" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="370" y="389" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0c4a6e">3 Budgets</text>
+  <text x="370" y="407" text-anchor="middle" font-size="11" fill="#0c4a6e">14 steps · $0.05</text>
+  <text x="370" y="421" text-anchor="middle" font-size="11" fill="#0c4a6e">results ≤ 6,000 chars</text>
+  <rect x="465" y="364" width="170" height="62" rx="10" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="550" y="389" text-anchor="middle" font-size="12.5" font-weight="700" fill="#4c1d95">4 Spotlighting</text>
+  <text x="550" y="407" text-anchor="middle" font-size="11" fill="#4c1d95">device text marked</text>
+  <text x="550" y="421" text-anchor="middle" font-size="11" fill="#4c1d95">as data, not orders</text>
+  <rect x="285" y="436" width="350" height="40" rx="10" fill="#f1f5f9" stroke="#94a3b8"/>
+  <text x="460" y="461" text-anchor="middle" font-size="12" fill="#334155">5 Audit log: every tool call recorded</text>
+
+  <text x="460" y="510" text-anchor="middle" font-size="12" fill="#475569">local tools: search_knowledge · open_ticket · list_tickets</text>
+  <text x="460" y="530" text-anchor="middle" font-size="12" fill="#475569">MCP client for the 10 network tools</text>
+
+  <!-- MCP server -->
+  <line x1="660" y1="200" x2="735" y2="200" stroke="#64748b" stroke-width="2" marker-end="url(#a)" marker-start="url(#a)"/>
+  <text x="697" y="190" text-anchor="middle" font-size="11" font-weight="700" fill="#0d9488">MCP</text>
+  <rect x="740" y="90" width="320" height="230" rx="12" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
+  <text x="900" y="117" text-anchor="middle" font-size="14.5" font-weight="700" fill="#0f172a">Network platform · network_mcp.py</text>
+  <text x="900" y="137" text-anchor="middle" font-size="11.5" fill="#475569">a separate process, speaks MCP</text>
+  <text x="760" y="165" font-size="12" fill="#0f172a">read: get_overview · check_intents</text>
+  <text x="760" y="185" font-size="12" fill="#0f172a">list_assets · get_asset · trace_path</text>
+  <text x="760" y="205" font-size="12" fill="#0f172a">impact_of · search_logs · forecast</text>
+  <text x="760" y="235" font-size="12" font-weight="700" fill="#b45309">change (approval): update_config</text>
+  <text x="760" y="255" font-size="12" font-weight="700" fill="#b45309">restart_asset</text>
+  <rect x="790" y="270" width="220" height="38" rx="8" fill="#e2e8f0" stroke="#64748b"/>
+  <text x="900" y="294" text-anchor="middle" font-size="12" fill="#0f172a">simulated city network (SQLite)</text>
+
+  <!-- knowledge -->
+  <line x1="660" y1="440" x2="735" y2="440" stroke="#64748b" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="740" y="350" width="320" height="200" rx="12" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
+  <text x="900" y="377" text-anchor="middle" font-size="14.5" font-weight="700" fill="#0f172a">Knowledge · knowledge.py (RAG)</text>
+  <text x="760" y="405" font-size="12" fill="#0f172a">12 runbooks · 8 past incidents</text>
+  <text x="760" y="425" font-size="12" fill="#0f172a">6 standards (ITU-T, ETSI) from</text>
+  <text x="760" y="445" font-size="12" fill="#0f172a">Hugging Face, GSMA datasets</text>
+  <text x="760" y="475" font-size="12" fill="#0f172a">728 passages · BM25 + embeddings</text>
+  <text x="760" y="495" font-size="12" fill="#0f172a">fused (hybrid) · top 4 returned</text>
+</svg>

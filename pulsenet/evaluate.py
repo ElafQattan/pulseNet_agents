@@ -28,10 +28,12 @@ from network import Network  # noqa: E402
 
 RESULTS = HERE / "results"
 
-# The two configurations differ in one thing only: how the knowledge base is searched.
+# The two configurations differ in one thing only: the system prompt.
+# A is the first version; B adds PLAYBOOK.md, written after the error analysis of A.
+# (Retrieval methods are compared separately, without a model, in eval_retrieval.py.)
 CONFIGS = {
-    "A": {"retrieval": "bm25", "about": "keyword search only (BM25)"},
-    "B": {"retrieval": "hybrid", "about": "keyword + embedding search fused with RRF"},
+    "A": {"system": agent.BASE_SPEC, "about": "AGENTS.md only"},
+    "B": {"system": agent.SPEC, "about": "AGENTS.md + PLAYBOOK.md"},
 }
 
 
@@ -61,12 +63,12 @@ def grade(task, final, calls, net):
 def run_task(task, config):
     workdir = K.lab_dir(f"pulsenet/eval/{config}/{task['id']}", reset=True)
     net = Network(workdir)  # a fresh copy of the 09:30 network for every task
-    agent.RETRIEVAL["mode"] = CONFIGS[config]["retrieval"]
     approve = lambda name, args: task["approve"]  # noqa: E731 - the task says whether the engineer approves
     start = time.perf_counter()
     with K.MCPBridge(agent.mcp_server(workdir)) as mcp:
         try:
-            run = agent.run(task["prompt"], net, mcp, approve=approve, verbose=False)
+            run = agent.run(task["prompt"], net, mcp, system=CONFIGS[config]["system"], approve=approve,
+                            verbose=False)
             final, calls, steps, error = run.final or "", run.tool_calls, run.steps, ""
             if run.stopped != "done":
                 error = f"stopped: {run.stopped}"

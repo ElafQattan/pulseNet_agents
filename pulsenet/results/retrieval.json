@@ -1,0 +1,26 @@
+{
+ "bm25": {
+  "direct_hit@4": 1.0,
+  "direct_mrr": 1.0,
+  "paraphrase_hit@4": 0.67,
+  "paraphrase_mrr": 0.53,
+  "all_hit@4": 0.83,
+  "all_mrr": 0.76
+ },
+ "embeddings": {
+  "direct_hit@4": 1.0,
+  "direct_mrr": 1.0,
+  "paraphrase_hit@4": 0.67,
+  "paraphrase_mrr": 0.57,
+  "all_hit@4": 0.83,
+  "all_mrr": 0.78
+ },
+ "hybrid": {
+  "direct_hit@4": 1.0,
+  "direct_mrr": 1.0,
+  "paraphrase_hit@4": 0.75,
+  "paraphrase_mrr": 0.67,
+  "all_hit@4": 0.88,
+  "all_mrr": 0.83
+ }
+}

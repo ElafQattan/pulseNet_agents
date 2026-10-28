@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 300" width="1100" height="300" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/></marker>
+  </defs>
+  <rect width="1100" height="300" rx="14" fill="#ffffff"/>
+  <text x="550" y="34" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">MCP: how the agent reaches the network platform</text>
+
+  <rect x="40" y="70" width="280" height="190" rx="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+  <text x="180" y="98" text-anchor="middle" font-size="15" font-weight="700" fill="#115e59">PulseNet (MCP client)</text>
+  <text x="60" y="130" font-size="12.5" fill="#0f172a">1. starts the server process</text>
+  <text x="60" y="155" font-size="12.5" fill="#0f172a">2. asks: which tools do you have?</text>
+  <text x="60" y="180" font-size="12.5" fill="#0f172a">3. gives the 10 tool definitions</text>
+  <text x="76" y="198" font-size="12.5" fill="#0f172a">to the LLM</text>
+  <text x="60" y="223" font-size="12.5" fill="#0f172a">4. calls a tool when the LLM asks</text>
+  <text x="60" y="246" font-size="11" fill="#64748b">(after the guards say yes)</text>
+
+  <line x1="325" y1="165" x2="535" y2="165" stroke="#0d9488" stroke-width="3" marker-end="url(#a)" marker-start="url(#a)"/>
+  <text x="430" y="150" text-anchor="middle" font-size="13" font-weight="700" fill="#0d9488">MCP over stdio</text>
+  <text x="430" y="190" text-anchor="middle" font-size="11.5" fill="#475569">tools/list · tools/call</text>
+  <text x="430" y="206" text-anchor="middle" font-size="11.5" fill="#475569">(JSON-RPC messages)</text>
+
+  <rect x="540" y="70" width="290" height="190" rx="12" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
+  <text x="685" y="98" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">network_mcp.py (MCP server)</text>
+  <text x="560" y="128" font-size="12.5" fill="#0f172a">get_overview · check_intents</text>
+  <text x="560" y="150" font-size="12.5" fill="#0f172a">list_assets · get_asset · trace_path</text>
+  <text x="560" y="172" font-size="12.5" fill="#0f172a">impact_of · search_logs · forecast</text>
+  <text x="560" y="200" font-size="12.5" font-weight="700" fill="#b45309">update_config · restart_asset</text>
+  <text x="560" y="230" font-size="11" fill="#64748b">tool errors come back as readable messages</text>
+  <text x="560" y="246" font-size="11" fill="#64748b">so the model can correct itself</text>
+
+  <line x1="830" y1="165" x2="885" y2="165" stroke="#64748b" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="890" y="110" width="180" height="110" rx="12" fill="#e2e8f0" stroke="#64748b"/>
+  <text x="980" y="145" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">City network</text>
+  <text x="980" y="167" text-anchor="middle" font-size="11.5" fill="#334155">40 assets, logs,</text>
+  <text x="980" y="184" text-anchor="middle" font-size="11.5" fill="#334155">tickets, audit</text>
+  <text x="980" y="206" text-anchor="middle" font-size="11" fill="#64748b">(simulated, SQLite)</text>
+  <text x="550" y="290" text-anchor="middle" font-size="11.5" fill="#64748b">Why MCP: the platform is a separate service with its own process; any MCP-compatible agent or tool could use it, not only PulseNet.</text>
+</svg>

@@ -14,7 +14,12 @@ dependencies = [
     "huggingface-hub>=2.0",  # downloads the embedding model
     "numpy>=2.0",
     "pandas>=2.2",           # eval results
+    "fastapi>=0.150",        # the HTTP API (api.py)
+    "uvicorn>=0.40",
 ]
+
+[dependency-groups]
+dev = ["pytest>=9.0"]
 
 [tool.uv]
 package = false
