@@ -66,7 +66,6 @@ data-center inlet ≤ 27 °C, no site running out of battery, and protected path
 | Memory · API | [`memory.py`](pulsenet/memory.py) · [`api.py`](pulsenet/api.py) | shift handover; HTTP service with keys and approvals |
 | Evaluation · security | [`evaluate.py`](pulsenet/evaluate.py) · [`eval_retrieval.py`](pulsenet/eval_retrieval.py) · [`attack.py`](pulsenet/attack.py) | 21 tasks, 24 retrieval questions, the attack |
 
-Every file is described in [`pulsenet/README.md`](pulsenet/README.md).
 
 ### 3.2 Workflow: the closed loop
 
