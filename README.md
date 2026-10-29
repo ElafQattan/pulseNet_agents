@@ -18,6 +18,7 @@ procedure, all under time pressure.
 groups alarms into a root cause, searches runbooks, past incident reports and international standards, forecasts
 the evening peak, and proposes a fix. **It cannot change anything until the engineer approves**, and it can never
 touch critical systems such as the railway network, traffic control or emergency calls.
+
 ---
 
 ## 1. Background: autonomous networks
