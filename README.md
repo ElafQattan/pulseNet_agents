@@ -18,14 +18,6 @@ procedure, all under time pressure.
 groups alarms into a root cause, searches runbooks, past incident reports and international standards, forecasts
 the evening peak, and proposes a fix. **It cannot change anything until the engineer approves**, and it can never
 touch critical systems such as the railway network, traffic control or emergency calls.
-
-The design follows the *closed loop* described in autonomous-network research (ETSI ZSM) at **intelligence level
-L3** of ITU-T Y.3173: the system collects data and executes; analysis and decisions are shared with the human.
-PulseNet is tested on a simulated network of Madinah (real district names, synthetic data) with **21 automatically
-graded tasks** on two prompt configurations, a **retrieval benchmark**, **18 offline tests**, and a **prompt-injection attack**.
-
-**Results:** error analysis of the first version (A, 29 % of tasks passed) led to one change, a playbook in the prompt (B, **62 %**); safety tasks went from 33 % to **100 %**. Hybrid search finds the right document for **88 %** of questions, against 83 % for keyword or embedding search alone. In the attack experiment an agent without defences restarted a whole district; with PulseNet's defences **nothing changed**, even though the model itself was fooled.
-
 ---
 
 ## 1. Background: autonomous networks
