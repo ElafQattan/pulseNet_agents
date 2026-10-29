@@ -126,9 +126,9 @@ for **88 %**, against 83 % for BM25 or embeddings alone. Details: [`results/READ
 
 ![Retrieval results](docs/images/retrieval_results.svg)
 
-## 5. Error analysis
+## 5. Error analysis and taxonomy
 
-Every failed task was read and given one cause:
+Every failed task was read and given one primary cause, which gives this **error taxonomy** (8 types):
 
 | # | Error type | Example | A | B |
 |---|---|---|---|---|
