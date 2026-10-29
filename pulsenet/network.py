@@ -335,6 +335,7 @@ class Network:
                 effects.append(f"{a['asset_id']}: battery now lasts about {m['battery_minutes_left']} minutes")
             if setting == "state" and value == "enabled":
                 self._enable_backup_wave()
+                m.update(self._asset(a["asset_id"])["metrics"])  # keep the load the backup link now carries
                 effects.append("Al-Aziziyah has a second path again; ring utilisation reduced")
             if setting == "state" and value == "disabled":
                 self._disable_backup_wave()

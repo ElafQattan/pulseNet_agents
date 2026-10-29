@@ -154,6 +154,19 @@ All guards are in [`guards.py`](pulsenet/guards.py) and enforced in code, so the
 starts a job, changes wait for `POST /v1/jobs/{id}/approval`, and every request needs an `X-API-Key` and is saved as
 a trace. [All endpoints](pulsenet/README.md#api).
 
+### 3.8 Operations dashboard
+
+The same service also serves a web dashboard for the engineer on shift (`uv run pulsenet/api.py`, then open
+`http://127.0.0.1:8800`). It has four pages, live data refreshed every 3 seconds, and the agent panel beside every
+page:
+
+- **Operations:** alarms, intents, district health and the event stream, with a replay of the morning.
+- **Network topology:** the ring and every asset on a map. When PulseNet names a fault, the map highlights it.
+- **Traffic & capacity:** the load on each link now and at the 21:00 peak, plus cell sites, data centers and gateways.
+- **Controller:** the closed-loop stage, the approval queue, the guards, device settings and the change log.
+
+![Dashboard: the fiber cut highlighted on the topology page](docs/images/ui_topology.png)
+
 ---
 
 ## 4. Evaluation

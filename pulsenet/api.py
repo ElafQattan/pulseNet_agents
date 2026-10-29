@@ -5,6 +5,7 @@
 # ///
 # PulseNet as an HTTP service, so a NOC dashboard or another system can use it.
 #   PULSENET_API_KEYS=dev-key-1 uv run pulsenet/api.py --port 8800
+#   open http://127.0.0.1:8800 for the operations dashboard (pulsenet/ui/)
 #
 #   curl -s localhost:8800/v1/chat -H "X-API-Key: dev-key-1" -H "Content-Type: application/json" \
 #        -d '{"message": "What is wrong with the network?"}'          -> {"job_id": ...}
@@ -14,9 +15,11 @@
 
 import argparse
 import json
+import math
 import os
 import sys
 import threading
+import time
 import uuid
 from pathlib import Path
 
@@ -26,16 +29,22 @@ sys.path.insert(0, str(HERE))
 
 import uvicorn  # noqa: E402
 from fastapi import Depends, FastAPI, Header, HTTPException  # noqa: E402
+from fastapi.responses import RedirectResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
 import agent  # noqa: E402
 import agentkit as K  # noqa: E402
+import guards  # noqa: E402
 import memory  # noqa: E402
 from network import Network  # noqa: E402
 
 API_KEYS = {k.strip() for k in os.getenv("PULSENET_API_KEYS", "dev-key-1").split(",") if k.strip()}
 TRACES = K.lab_dir("pulsenet") / "traces.jsonl"
 APPROVAL_TIMEOUT_S = 300  # an approval nobody answers counts as "no"
+# small moving noise on the readings the dashboard shows, so it looks like live telemetry (never stored)
+NOISE = {"utilisation_pct": 1.5, "prb_dl_pct": 2, "inlet_temp_c": 0.15, "uplink_mbps": 1.2, "used_gbps": 4,
+         "cpu_pct": 3}
 
 app = FastAPI(title="PulseNet API", version="1.0.0")
 state = {"net": None, "mcp": None, "history": []}
@@ -51,12 +60,12 @@ def check_key(x_api_key: str = Header(default="")):
 class Job:
     # one request to the agent, run in the background so the caller can approve changes while it waits
     def __init__(self, message):
-        self.id, self.message = uuid.uuid4().hex[:8], message
+        self.id, self.message, self.started = uuid.uuid4().hex[:8], message, time.time()
         self.steps, self.pending, self.final, self.done = [], None, None, False
         self._answered, self._approved = threading.Event(), False
 
     def on_event(self, e):
-        self.steps.append({"kind": e.kind, "text": e.text[:500]})
+        self.steps.append({"kind": e.kind, "text": e.text[:500], "tool": e.data.get("name")})
 
     def approve(self, name, args):
         self.pending = {"tool": name, "args": args}
@@ -116,7 +125,15 @@ def job_status(job_id: str):
     job = jobs.get(job_id)
     if not job:
         raise HTTPException(404, "unknown job")
-    return {"steps": job.steps, "pending_approval": job.pending, "answer": job.final, "done": job.done}
+    return {"id": job.id, "message": job.message, "steps": job.steps, "pending_approval": job.pending,
+            "answer": job.final, "done": job.done}
+
+
+@app.get("/v1/jobs", dependencies=[Depends(check_key)])
+def recent_jobs():
+    # newest first, so the controller page can show a change waiting for approval from any client
+    latest = sorted(jobs.values(), key=lambda j: j.started, reverse=True)[:10]
+    return [job_status(j.id) for j in latest]
 
 
 @app.post("/v1/jobs/{job_id}/approval", dependencies=[Depends(check_key)])
@@ -143,12 +160,75 @@ def audit():
     return state["net"].sql("SELECT * FROM audit_log ORDER BY ts")
 
 
+def live(a, now):
+    # the stored reading plus a little noise; down or quarantined assets stay flat
+    if a["status"] in ("down", "quarantined"):
+        return a
+    seed = sum(map(ord, a["asset_id"]))
+    for key, size in NOISE.items():
+        value = a["metrics"].get(key)
+        if isinstance(value, (int, float)) and value > 0:
+            wobble = size * math.sin(now / 7 + seed) * math.cos(now / 13 + seed / 3)
+            a["metrics"][key] = round(max(0, value + wobble), 1)
+    return a
+
+
+@app.get("/v1/assets", dependencies=[Depends(check_key)])
+def assets():
+    now = time.time()
+    rows = [live(a, now) for a in state["net"]._all()]
+    for a in rows:
+        a.pop("description", None)  # device text is for the agent's tools, not the dashboard
+    return rows
+
+
+@app.get("/v1/logs", dependencies=[Depends(check_key)])
+def logs():
+    return state["net"].sql("SELECT ts, asset_id, level, message FROM logs ORDER BY ts")
+
+
+@app.get("/v1/tickets", dependencies=[Depends(check_key)])
+def tickets():
+    return state["net"].sql("SELECT * FROM tickets ORDER BY ticket_id")
+
+
+@app.get("/v1/meta", dependencies=[Depends(check_key)])
+def meta():
+    rows = {r["key"]: json.loads(r["value"]) for r in state["net"].sql("SELECT key, value FROM meta")}
+    return {"now": "2026-11-02T09:30", "model": K.MODEL, "districts": rows.get("districts", {}),
+            "traffic_profile": rows.get("traffic_profile", {}), "max_steps": agent.MAX_STEPS,
+            "max_cost": agent.MAX_COST, "critical_prefixes": list(guards.CRITICAL)}
+
+
+@app.post("/v1/reset", dependencies=[Depends(check_key)])
+def reset():
+    # back to Monday 09:30, for a fresh demo
+    if not one_at_a_time.acquire(blocking=False):
+        raise HTTPException(409, "PulseNet is still working on a request")
+    try:
+        state["net"] = Network(state["workdir"], reset=True)
+        state["history"] = []
+        memory.clear()
+    finally:
+        one_at_a_time.release()
+    return {"ok": True}
+
+
+UI = HERE / "ui"
+app.mount("/ui", StaticFiles(directory=UI, html=True), name="ui")
+
+
+@app.get("/", include_in_schema=False)
+def home():
+    return RedirectResponse("/ui/")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8800)
     args = ap.parse_args()
     workdir = K.lab_dir("pulsenet/api", reset=True)
-    state["net"] = Network(workdir)
+    state["workdir"], state["net"] = workdir, Network(workdir)
     state["mcp"] = K.MCPBridge(agent.mcp_server(workdir)).open()
     print(f"PulseNet API on http://127.0.0.1:{args.port}  (docs: /docs)")
     uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="warning")

@@ -17,7 +17,8 @@ covers the details: what each file does, the full tool list, the memory format, 
 | [`knowledge.py`](knowledge.py) | RAG: BM25, embeddings (`potion-retrieval-32M`) and hybrid search with reciprocal rank fusion |
 | [`fetch_standards.py`](fetch_standards.py) | downloads 6 ITU-T / ETSI standards from the GSMA datasets on Hugging Face and cleans the text |
 | [`prepare_data.py`](prepare_data.py) | builds `data/network.sqlite` from `network.json` and `logs.txt` |
-| [`api.py`](api.py) | HTTP API (FastAPI) with API keys, approvals and traces |
+| [`api.py`](api.py) | HTTP API (FastAPI) with API keys, approvals and traces; also serves the dashboard |
+| [`ui/`](ui) | the operations dashboard: `index.html`, `style.css`, `app.js` (plain JavaScript, no build step) |
 | [`evaluate.py`](evaluate.py) · [`tasks.jsonl`](tasks.jsonl) | the 21-task evaluation and its graders |
 | [`eval_retrieval.py`](eval_retrieval.py) | the 24-question retrieval test, with no model involved |
 | [`attack.py`](attack.py) | the prompt-injection experiment, run without and with the defences |
@@ -83,6 +84,24 @@ Every request needs an `X-API-Key` header (keys from `PULSENET_API_KEYS`).
 | `POST /v1/chat` | send a message; returns a job ID |
 | `GET /v1/jobs/{id}` | steps so far, a pending approval if any, and the answer |
 | `POST /v1/jobs/{id}/approval` | approve or reject the pending change (times out after 300 s) |
+| `GET /v1/jobs` | the latest requests, so any client can see a change waiting for approval |
 | `GET /v1/alarms` · `/v1/intents` · `/v1/audit` | network state and the audit log |
+| `GET /v1/assets` · `/v1/logs` · `/v1/tickets` · `/v1/meta` | data for the dashboard (readings carry small live noise, never stored) |
+| `POST /v1/reset` | puts the network back to Monday 09:30 for a fresh demo |
 
 Each job is saved as a trace in `artifacts/pulsenet/traces.jsonl`.
+
+## Dashboard
+
+`uv run pulsenet/api.py`, then open http://127.0.0.1:8800 (API key `dev-key-1` unless `PULSENET_API_KEYS` says otherwise).
+
+| Page | What it shows |
+|---|---|
+| Operations | KPIs, alarms sorted by severity (each with *Locate* and *Ask agent*), intents, district health, event stream; *Replay this morning* plays 06:00 → 09:30 in 45 seconds and raises each alarm as it arrives |
+| Network topology | the ring, district routers and every asset; links coloured by load, cuts dashed, pulsing red for active alarms; click anything for its readings, path to the internet and dependants |
+| Traffic & capacity | each ring link now and at the 21:00 peak against the 70 % intent, a projected day curve, radio load per cell site and sector, data-center temperatures, IoT uplinks |
+| Controller | the closed-loop stage of the current request, the approval queue (Approve / Reject), the guards, device settings, locked assets, the change log and tickets; *Reset network to 09:30* |
+
+The agent panel stays open on every page. Asset IDs in its answers are links to the map. If the question asks
+*where* ("where exactly is the fault?"), the dashboard moves to the topology page (or the traffic page for load
+questions) and highlights what the answer names.
