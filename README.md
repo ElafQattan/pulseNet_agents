@@ -206,19 +206,6 @@ Requests need an `X-API-Key`. Changes wait for an approval call; every request i
 | `POST /v1/jobs/{id}/approval` | approve or reject the pending change |
 | `GET /v1/alarms` · `/v1/intents` · `/v1/audit` | network state and the audit log |
 
-### 3.8 Where each capstone requirement is met
-
-| Requirement | In PulseNet |
-|---|---|
-| 3+ tools, one over MCP | 13 tools, 10 over MCP |
-| Context file | `AGENTS.md` |
-| Memory or retrieval | both: hybrid RAG and shift memory |
-| Compaction or budget rule | result cap, history compaction, handover size limit |
-| Approval on a write action | every change |
-| Step and cost budgets | 14 steps, $0.05 |
-| 15+ eval tasks on two configurations, error analysis | 21 tasks, A vs B (prompt), plus a 24-question retrieval test; [section 5](#5-error-analysis) |
-| Trifecta analysis, one attack, one defence | [section 6](#6-security-analysis) |
-
 ---
 
 ## 4. Evaluation
@@ -388,81 +375,9 @@ the Saudi PDPL.
 
 ---
 
-## 8. How to run
-
-Requirements: Python, [uv](https://docs.astral.sh/uv/) and a free [OpenRouter](https://openrouter.ai) key.
-
-```bash
-cp .env.example .env                        # then add your OpenRouter key
-uv sync
-uv run python pulsenet/fetch_standards.py   # downloads the 6 standards from Hugging Face
-uv run python pulsenet/prepare_data.py      # builds the simulated network
-
-uv run pulsenet/agent.py chat               # talk to PulseNet; every change asks "Approve? [y/N]"
-uv run pulsenet/api.py                      # or run it as an HTTP service (docs at /docs)
-
-uv run pytest -q tests                      # 18 offline tests, no model needed
-uv run pulsenet/evaluate.py                 # the evaluation, configurations A and B
-uv run python pulsenet/eval_retrieval.py    # the knowledge-search evaluation
-uv run pulsenet/attack.py                   # the security experiment
-```
-
----
-
-## 9. Repository structure
-
-```
-pulseNet_agents/
-├── agentkit.py               agent loop and MCP bridge (from the course)
-├── pulsenet/
-│   ├── AGENTS.md             the agent's instructions
-│   ├── PLAYBOOK.md           fault → action rules, added after the error analysis
-│   ├── agent.py              harness + terminal chat
-│   ├── guards.py             deny list, approvals, budgets, audit
-│   ├── memory.py             shift handover
-│   ├── network.py            simulated network + 12 tools
-│   ├── network_mcp.py        MCP server for the network tools
-│   ├── knowledge.py          RAG: BM25, embeddings, hybrid
-│   ├── api.py                HTTP API
-│   ├── evaluate.py           evaluation runner and graders
-│   ├── eval_retrieval.py     knowledge-search evaluation (no model)
-│   ├── plot_results.py       draws the result charts
-│   ├── attack.py             prompt-injection experiment
-│   ├── fetch_standards.py    downloads the standards
-│   ├── prepare_data.py       builds the network database
-│   ├── tasks.jsonl           21 evaluation tasks
-│   ├── data/                 network.json · logs.txt · knowledge/ (runbooks, incidents)
-│   └── results/              evaluation and attack results
-├── tests/test_pulsenet.py    18 offline tests
-└── docs/images/              figures
-```
-
----
-
-## 10. Limitations and future work
-
-- The network is simulated; tool effects are simplified versions of real behaviour.
-- The forecast uses a fixed hourly traffic profile, not a learned model.
-- PulseNet acts only when asked. Watching the network continuously and acting on low-risk faults alone would be
-  level L4, the natural next step.
-- Results depend on the model: free models change often and small local models make more mistakes (section 5).
-
----
-
-## References
-
-1. ITU-T Recommendation Y.3173 (2020). *Framework for evaluating intelligence levels of future networks including IMT-2020.*
-2. ETSI GS ZSM 009-1 (2021). *Zero-touch network and Service Management (ZSM); Closed-loop automation; Part 1: Enablers.*
-3. Model Context Protocol (introduced by Anthropic, 2024). *Specification.* https://modelcontextprotocol.io
-4. S. Willison (2025). *The lethal trifecta for AI agents.*
-
----
-
 ## Acknowledgement
 
 This project was built as my capstone for **Agentic AI Systems Engineering** (AI Engineering Track) at
 **SDAIA Academy** ([course page](https://sdaiaacademy.github.io/agentic-ai/)). The agent loop in `agentkit.py` comes
 from the course materials. All network assets, readings, logs and incidents are fictional; the standards text is
 downloaded from the GSMA Open-Telco datasets and is not redistributed here.
-
-**Author:** Elaf Qattan
