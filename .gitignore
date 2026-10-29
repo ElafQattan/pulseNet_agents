@@ -9,3 +9,6 @@ __pycache__/
 pulsenet/data/network.sqlite
 pulsenet/data/knowledge/standards/
 *.sqlite-journal
+
+# the dashboard is published only on the Hugging Face Space
+pulsenet/ui/

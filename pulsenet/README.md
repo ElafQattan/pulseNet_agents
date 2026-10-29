@@ -17,8 +17,7 @@ covers the details: what each file does, the full tool list, the memory format, 
 | [`knowledge.py`](knowledge.py) | RAG: BM25, embeddings (`potion-retrieval-32M`) and hybrid search with reciprocal rank fusion |
 | [`fetch_standards.py`](fetch_standards.py) | downloads 6 ITU-T / ETSI standards from the GSMA datasets on Hugging Face and cleans the text |
 | [`prepare_data.py`](prepare_data.py) | builds `data/network.sqlite` from `network.json` and `logs.txt` |
-| [`api.py`](api.py) | HTTP API (FastAPI) with API keys, approvals and traces; also serves the dashboard |
-| [`ui/`](ui) | the operations dashboard: `index.html`, `style.css`, `app.js` (plain JavaScript, no build step) |
+| [`api.py`](api.py) | HTTP API (FastAPI) with API keys, approvals and traces; serves the dashboard on the Space |
 | [`evaluate.py`](evaluate.py) · [`tasks.jsonl`](tasks.jsonl) | the 21-task evaluation and its graders |
 | [`eval_retrieval.py`](eval_retrieval.py) | the 24-question retrieval test, with no model involved |
 | [`attack.py`](attack.py) | the prompt-injection experiment, run without and with the defences |
@@ -93,15 +92,15 @@ Each job is saved as a trace in `artifacts/pulsenet/traces.jsonl`.
 
 ## Dashboard
 
-`uv run pulsenet/api.py`, then open http://127.0.0.1:8800 (API key `dev-key-1` unless `PULSENET_API_KEYS` says otherwise).
+The dashboard is published on Hugging Face Spaces only: https://huggingface.co/spaces/Elafqattan/pulsenet. The
+Space runs this repository's `api.py` and serves the dashboard pages from `/ui`.
 
 | Page | What it shows |
 |---|---|
-| Operations | KPIs, alarms sorted by severity (each with *Locate* and *Ask agent*), intents, district health, event stream; *Replay this morning* plays 06:00 → 09:30 in 45 seconds and raises each alarm as it arrives |
-| Network topology | the ring, district routers and every asset; links coloured by load, cuts dashed, pulsing red for active alarms; click anything for its readings, path to the internet and dependants |
-| Traffic & capacity | each ring link now and at the 21:00 peak against the 70 % intent, a projected day curve, radio load per cell site and sector, data-center temperatures, IoT uplinks |
-| Controller | the closed-loop stage of the current request, the approval queue (Approve / Reject), the guards, device settings, locked assets, the change log and tickets; *Reset network to 09:30* |
+| Overview | four headline numbers, the alarms that need attention (click one to see it on the map), the operator goals, the latest events and a replay of the morning |
+| Map | the ring, district routers and every asset; links coloured by load, cuts dashed, pulsing red for active alarms; click anything for its readings and path |
+| Traffic | each ring link now and at the 21:00 peak against the 70 % goal, its day curve, and the hotspots outside their normal range |
+| Controller | the closed-loop stage of the current request, the approval queue (Approve / Reject), and every change and ticket made |
 
-The agent panel stays open on every page. Asset IDs in its answers are links to the map. If the question asks
-*where* ("where exactly is the fault?"), the dashboard moves to the topology page (or the traffic page for load
-questions) and highlights what the answer names.
+The agent panel stays open on every page. Asset IDs in its answers link to the map, and a *where* question
+("where exactly is the fault?") moves the dashboard to the map with the answer's assets highlighted.

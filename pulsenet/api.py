@@ -5,7 +5,7 @@
 # ///
 # PulseNet as an HTTP service, so a NOC dashboard or another system can use it.
 #   PULSENET_API_KEYS=dev-key-1 uv run pulsenet/api.py --port 8800
-#   open http://127.0.0.1:8800 for the operations dashboard (pulsenet/ui/)
+#   the operations dashboard (pulsenet/ui/) is not in this repository; it runs on the Hugging Face Space
 #
 #   curl -s localhost:8800/v1/chat -H "X-API-Key: dev-key-1" -H "Content-Type: application/json" \
 #        -d '{"message": "What is wrong with the network?"}'          -> {"job_id": ...}
@@ -214,21 +214,23 @@ def reset():
     return {"ok": True}
 
 
-UI = HERE / "ui"
-app.mount("/ui", StaticFiles(directory=UI, html=True), name="ui")
+UI = HERE / "ui"  # the dashboard, when it is installed next to the API (as on the Hugging Face Space)
+if UI.exists():
+    app.mount("/ui", StaticFiles(directory=UI, html=True), name="ui")
 
 
 @app.get("/", include_in_schema=False)
 def home():
-    return RedirectResponse("/ui/")
+    return RedirectResponse("/ui/" if UI.exists() else "/docs")
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--port", type=int, default=8800)
+    ap.add_argument("--port", type=int, default=int(os.getenv("PORT", 8800)))
+    ap.add_argument("--host", default="127.0.0.1", help="0.0.0.0 inside a container")
     args = ap.parse_args()
     workdir = K.lab_dir("pulsenet/api", reset=True)
     state["workdir"], state["net"] = workdir, Network(workdir)
     state["mcp"] = K.MCPBridge(agent.mcp_server(workdir)).open()
-    print(f"PulseNet API on http://127.0.0.1:{args.port}  (docs: /docs)")
-    uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="warning")
+    print(f"PulseNet API on http://{args.host}:{args.port}  (docs: /docs)")
+    uvicorn.run(app, host=args.host, port=args.port, log_level="warning")

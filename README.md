@@ -157,14 +157,12 @@ a trace. [All endpoints](pulsenet/README.md#api).
 
 ### 3.8 Operations dashboard
 
-The same service also serves a web dashboard for the engineer on shift (`uv run pulsenet/api.py`, then open
-`http://127.0.0.1:8800`). It has four pages, live data refreshed every 3 seconds, and the agent panel beside every
-page:
+🛰️ **Live demo: [huggingface.co/spaces/Elafqattan/pulsenet](https://huggingface.co/spaces/Elafqattan/pulsenet)**
 
-- **Operations:** alarms, intents, district health and the event stream, with a replay of the morning.
-- **Network topology:** the ring and every asset on a map. When PulseNet names a fault, the map highlights it.
-- **Traffic & capacity:** the load on each link now and at the 21:00 peak, plus cell sites, data centers and gateways.
-- **Controller:** the closed-loop stage, the approval queue, the guards, device settings and the change log.
+A web dashboard for the engineer on shift, running on Hugging Face Spaces on top of the API above. It has four
+pages: an **overview** of what needs attention, a live **map** of the network, **traffic** now and at the 21:00
+peak, and a **controller** page with the closed loop and the approval queue. The agent panel sits beside every
+page; when it names a fault, the map highlights it.
 
 ![Dashboard: the fiber cut highlighted on the topology page](docs/images/ui_topology.png)
 
