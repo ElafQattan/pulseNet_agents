@@ -92,6 +92,8 @@ Each job is saved as a trace in `artifacts/pulsenet/traces.jsonl`.
 
 ## Dashboard
 
+Live: https://pulsenet-093g.onrender.com
+
 The dashboard is not in this repository: its files live in a private Hugging Face repository. The hosted demo is
 built from this repository's [`Dockerfile`](../Dockerfile) on Render ([`render.yaml`](../render.yaml)); at start-up,
 [`deploy/start.sh`](../deploy/start.sh) downloads the dashboard with the `HF_TOKEN` secret and `api.py` serves it

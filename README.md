@@ -157,6 +157,9 @@ a trace. [All endpoints](pulsenet/README.md#api).
 
 ### 3.8 Operations dashboard
 
+🛰️ **Live demo: [pulsenet-093g.onrender.com](https://pulsenet-093g.onrender.com)** (free hosting: the first visit after a quiet
+period takes about a minute to wake up)
+
 A web dashboard for the engineer on shift, running on top of the API above. It has four
 pages: an **overview** of what needs attention, a live **map** of the network, **traffic** now and at the 21:00
 peak, and a **controller** page with the closed loop and the approval queue. The agent panel sits beside every
