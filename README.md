@@ -308,7 +308,29 @@ the Saudi PDPL.
 
 ## Acknowledgement
 
-This project was built as my capstone for **Agentic AI Systems Engineering** (AI Engineering Track) at
-**SDAIA Academy** ([course page](https://sdaiaacademy.github.io/agentic-ai/)). The agent loop in `agentkit.py` comes
+This project was built as my capstone for
+[Advanced Agentic AI Systems Engineering - SDAIA Academy](https://github.com/sdaiaacademy/agentic-ai/). The agent loop in `agentkit.py` comes
 from the course materials. All network assets, readings, logs and incidents are fictional; the standards text is
 downloaded from the GSMA Open-Telco datasets and is not redistributed here.
+
+---
+
+## How to run
+
+Run PulseNet on your own machine, in the terminal. You need Python, [uv](https://docs.astral.sh/uv/) and a free
+[OpenRouter](https://openrouter.ai/keys) key.
+
+```bash
+git clone https://github.com/ElafQattan/pulseNet_agents.git
+cd pulseNet_agents
+cp .env.example .env                        # then put your OpenRouter key in .env
+uv sync
+uv run python pulsenet/fetch_standards.py   # downloads the 6 standards from Hugging Face
+uv run python pulsenet/prepare_data.py      # builds the simulated network
+
+uv run pulsenet/agent.py chat --forget      # talk to PulseNet; every change asks "Approve? [y/N]"
+```
+
+Try: *"What is wrong with the network and what should I do first?"*, then *"Restore protection for Al-Aziziyah."*
+An empty line ends the chat. Tests, evaluation and the attack: `uv run pytest -q tests`,
+`uv run pulsenet/evaluate.py`, `uv run pulsenet/attack.py`.
