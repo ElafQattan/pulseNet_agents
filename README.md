@@ -157,9 +157,7 @@ a trace. [All endpoints](pulsenet/README.md#api).
 
 ### 3.8 Operations dashboard
 
-🛰️ **Live demo: [huggingface.co/spaces/Elafqattan/pulsenet](https://huggingface.co/spaces/Elafqattan/pulsenet)**
-
-A web dashboard for the engineer on shift, running on Hugging Face Spaces on top of the API above. It has four
+A web dashboard for the engineer on shift, running on top of the API above. It has four
 pages: an **overview** of what needs attention, a live **map** of the network, **traffic** now and at the 21:00
 peak, and a **controller** page with the closed loop and the approval queue. The agent panel sits beside every
 page; when it names a fault, the map highlights it.

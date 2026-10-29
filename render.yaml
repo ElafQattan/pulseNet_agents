@@ -1,0 +1,17 @@
+# One-click deploy on Render (New > Blueprint). The two secrets are typed into Render's form, never into the code.
+services:
+  - type: web
+    name: pulsenet
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: OPENROUTER_API_KEY   # model calls
+        sync: false
+      - key: HF_TOKEN             # read access to the private dashboard repository
+        sync: false
+      - key: AGENT_MODEL
+        value: nvidia/nemotron-3-ultra-550b-a55b:free
+      - key: AGENT_FALLBACKS
+        value: nvidia/nemotron-3.5-super-vl:free,google/gemma-4-31b-it:free

@@ -1,0 +1,9 @@
+.env
+.git
+.venv
+artifacts
+cache
+pulsenet/ui
+pulsenet/data/network.sqlite
+pulsenet/data/knowledge/standards
+**/__pycache__

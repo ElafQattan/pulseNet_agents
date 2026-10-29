@@ -10,5 +10,5 @@ pulsenet/data/network.sqlite
 pulsenet/data/knowledge/standards/
 *.sqlite-journal
 
-# the dashboard is published only on the Hugging Face Space
+# the dashboard is kept in a private Hugging Face repository and served by the hosted demo
 pulsenet/ui/

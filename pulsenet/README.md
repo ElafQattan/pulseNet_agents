@@ -17,7 +17,7 @@ covers the details: what each file does, the full tool list, the memory format, 
 | [`knowledge.py`](knowledge.py) | RAG: BM25, embeddings (`potion-retrieval-32M`) and hybrid search with reciprocal rank fusion |
 | [`fetch_standards.py`](fetch_standards.py) | downloads 6 ITU-T / ETSI standards from the GSMA datasets on Hugging Face and cleans the text |
 | [`prepare_data.py`](prepare_data.py) | builds `data/network.sqlite` from `network.json` and `logs.txt` |
-| [`api.py`](api.py) | HTTP API (FastAPI) with API keys, approvals and traces; serves the dashboard on the Space |
+| [`api.py`](api.py) | HTTP API (FastAPI) with API keys, approvals and traces; serves the dashboard in the hosted demo |
 | [`evaluate.py`](evaluate.py) · [`tasks.jsonl`](tasks.jsonl) | the 21-task evaluation and its graders |
 | [`eval_retrieval.py`](eval_retrieval.py) | the 24-question retrieval test, with no model involved |
 | [`attack.py`](attack.py) | the prompt-injection experiment, run without and with the defences |
@@ -92,8 +92,10 @@ Each job is saved as a trace in `artifacts/pulsenet/traces.jsonl`.
 
 ## Dashboard
 
-The dashboard is published on Hugging Face Spaces only: https://huggingface.co/spaces/Elafqattan/pulsenet. The
-Space runs this repository's `api.py` and serves the dashboard pages from `/ui`.
+The dashboard is not in this repository: its files live in a private Hugging Face repository. The hosted demo is
+built from this repository's [`Dockerfile`](../Dockerfile) on Render ([`render.yaml`](../render.yaml)); at start-up,
+[`deploy/start.sh`](../deploy/start.sh) downloads the dashboard with the `HF_TOKEN` secret and `api.py` serves it
+from `/ui`.
 
 | Page | What it shows |
 |---|---|
